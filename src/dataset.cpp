@@ -54,7 +54,7 @@ void dataset<T>::add_vector(string newVector){
 
 template <class T>
 dataset<T>::~dataset(){
-    for(int i = 0; i < vectors.size(); i++)
+    for(unsigned int i = 0; i < vectors.size(); i++)
         delete vectors[i];
     vectors.clear();
 }
@@ -62,7 +62,7 @@ dataset<T>::~dataset(){
 template <class T>
 void dataset<T>::print(){
     cout << counter << endl;
-    for(int i = 0; i < vectors.size(); i++)
+    for(unsigned int i = 0; i < vectors.size(); i++)
         vectors[i]->print();
 
 }
