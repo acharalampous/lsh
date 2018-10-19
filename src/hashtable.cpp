@@ -1,11 +1,16 @@
 #include <iostream>
 #include <ctime>
 #include <random>
+#include <cmath>
 
-#include "hashtable.h"
+#include "lsh.h"
 #include "utils.h"
 
 using namespace std;
+
+
+template class euclidean<int>;
+template class csimilarity<int>;
 
 euclideanHF::euclideanHF(){
 	random_device rd;
@@ -25,7 +30,7 @@ euclideanHF::euclideanHF(){
 	t = real_random(gen);
 }
 
-int euclideanHF::getValue(array<int, D> vec){
+int euclideanHF::getValue(array<int, D>& vec){
 	float product = vector_product(v, vec);
 
 	float result = (product * t) / W;
@@ -42,6 +47,26 @@ void euclideanHF::print(){
 }
 
 
+template <class T>
+euclidean<T>::euclidean(int k, int dataset_sz){
+	this->k = k;
+	this->tableSize = dataset_sz / TS_DIVISOR;
+	M = pow(2, 32) - 5;
+
+	buckets = new vector<vector_item<T>*>[tableSize];
+
+	for(int i = 0; i < k; i++)
+		hfs.push_back(new euclideanHF);
+
+	uniform_int_distribution<int> rand_Z(-20000,20000);
+	default_random_engine gen; 
+
+	for(int 0; i < k; i++)
+		r.push_back(rand_Z(gen));
+}
+
+
+
 csimilarityHF::csimilarityHF(){
 	random_device rd;
 
@@ -56,7 +81,7 @@ csimilarityHF::csimilarityHF(){
 
 }
 
-int csimilarityHF::getValue(array<int, D> vec){
+int csimilarityHF::getValue(array<int, D>& vec){
 	
 	float product = vector_product(r, vec);
 	
@@ -70,3 +95,7 @@ void csimilarityHF::print(){
 		cout << i << ". " << r[i] << endl;
 
 }
+
+
+template <class T>
+csimilarityHT<T>::csimilarityHT(int k, int tableSize) : hashTable<T>(k, tableSize, 1){}
