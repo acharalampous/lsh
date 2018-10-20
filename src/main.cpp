@@ -6,7 +6,7 @@
 
 #include "utils.h"
 #include "dataset.h"
-#include "lsh.h"
+#include "metrics.h"
 
 
 using namespace std;
@@ -20,7 +20,11 @@ int main(void){
         my_data.add_vector(line);    
     }
 
-    
+    euclidean<int> ed(4, my_data.get_counter());
+
+    vector_item<int>* it = my_data.get_item(3000);
+
+    it->print();
 
     //my_data.print();
 }

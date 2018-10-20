@@ -80,6 +80,16 @@ void dataset<T>::add_vector(string& new_vector){
     counter++;
 }
 
+template <class T>
+int dataset<T>::get_counter(){
+    return this->counter;
+}
+
+template <class T>
+vector_item<T>* dataset<T>::get_item(int index){
+    return vectors[index];
+}
+
 /* Destroy all vector_items */
 template <class T>
 dataset<T>::~dataset(){

@@ -91,6 +91,8 @@ euclidean<T>::euclidean(int k, int dataset_sz) : k(k){
 
 	/* Create empty buckets */
 	buckets = new vector<euclidean_vec<T>*>[tableSize];
+	for(int i = 0; i < tableSize; i++)
+		cout << buckets[i].size() << endl;
 
 	/* Create hash functions */
 	for(int i = 0; i < k; i++)

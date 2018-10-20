@@ -47,5 +47,9 @@ class dataset{
         
         /* Given a string with all the points, create new records and push */
         void add_vector(std::string&);
+        
+        /* Accessors */
+        int get_counter();
+        vector_item<T>* get_item(int); 
         void print();
 };
