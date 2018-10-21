@@ -12,7 +12,7 @@
 #include <list>
 #include "dataset.h"
 
-#define W 4 // window
+#define W 300 // window
 #define TS_DIVISOR 2 // for tablesize in euclidean
 /* For random vector r, in euclidean */
 #define MIN_Ri -40 
@@ -34,11 +34,15 @@ template <class T>
 class euclidean_vec{
     private:
         vector_item<T>* vec; // pointer to vector in dataset
-        long int g; // value of g(p)
+        long long int g; // value of g(p)
     public:
         euclidean_vec(vector_item<T>*, long int);
         
         void print();
+
+        /* Acessors */
+        vector_item<T>& get_vec();
+        long long int get_g();
 };
 
 
@@ -75,6 +79,16 @@ class euclidean{
 
         /* Add new vector to hash table*/ 
         void add_vector(vector_item<T>*); 
+
+        /* Returns a pointer to the bucket with the given index */
+        std::vector<euclidean_vec<T>*>& get_bucket(int);
+
+        /* Given a query vector, finds the nearest neighbours */ 
+        void findNN(vector_item<T>&, float, float&, std::string&);
+
+        /* Computes the euclidean distance of 2 vectors */
+        float eucl_distance(vector_item<T>&, vector_item<T>&);
+
 };
 
 
@@ -110,4 +124,12 @@ class csimilarity{
 		csimilarity(int);
 
         void add_vector(vector_item<T>*);
+
+        /* Returns a pointer to the bucket with the given index */
+        std::vector<vector_item<T>*>& get_bucket(int);
+
+        /* Given a query vector, finds the nearest neighbours */ 
+        void findNN(vector_item<T>&, float, float&, std::string&);
+
+        float cs_distance(vector_item<T>&, vector_item<T>&);
 };

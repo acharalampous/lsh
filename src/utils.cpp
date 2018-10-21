@@ -26,14 +26,19 @@ float vector_product(std::array<float, D>& vec1, std::array<int, D>& vec2){
     return product;
 }
 
-long int h_concantenate(vector<int>& hs){
+long long int h_concantenate(vector<int>& hs){
     /* Creates a string with the concatenated ints, and then it is */
     /* returned converted back to int.                             */
 
     string res_str("");
     for(unsigned int i = 0; i < hs.size(); i++)
-        res_str += to_string(hs[i]);
+        res_str += to_string(abs(hs[i]));
 
 
-    return stoi(res_str);
+    return stoll(res_str);
+}
+
+long long int my_mod(int a, long int b){
+	long long int res = a - ((floor( (long double)a / (long double)b) ) * b); 
+    return res;
 }

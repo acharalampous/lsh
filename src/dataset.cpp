@@ -18,6 +18,7 @@ using namespace std;
 template class vector_item<int>;
 template class dataset<int>;
 
+
 /*  Implementation of all functions of dataset
  *  and vector_item. Definitions found in
  *  dataset.h.
@@ -57,10 +58,22 @@ void vector_item<T>::print(){
     cout << "\n" << endl;
 }
 
+/* Returns item name */
+template <class T>
+string vector_item<T>::get_id(){
+    return this->item_id;
+}
+
 /* Return points array */
 template <class T>
 array<T, D>& vector_item<T>::get_points(){
     return coordinates;
+}
+
+/* Returns size of vector(number of dimensions) */
+template <class T>
+int vector_item<T>::get_size(){
+    return this->coordinates.size();
 }
 
 

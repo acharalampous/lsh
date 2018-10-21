@@ -19,4 +19,7 @@
 float vector_product(std::array<float,D>&, std::array<int, D>&);
 
 /* Given a number of integers, concantetates them and returns the value */
-long int h_concantenate(std::vector<int>&);
+long long int h_concantenate(std::vector<int>&);
+
+/* Returns the modulo of the given integers */
+long long int my_mod(int, long int);

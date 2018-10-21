@@ -44,6 +44,16 @@ void euclidean_vec<T>::print(){
 	this->vec->print();
 }
 
+template <class T>
+vector_item<T>& euclidean_vec<T>::get_vec(){
+	return *(this->vec);
+}
+
+template <class T>
+long long int euclidean_vec<T>::get_g(){
+	return this->g;
+}
+
 
 /** euclideanHF **/
 euclideanHF::euclideanHF(){
@@ -91,8 +101,6 @@ euclidean<T>::euclidean(int k, int dataset_sz) : k(k){
 
 	/* Create empty buckets */
 	buckets = new vector<euclidean_vec<T>*>[tableSize];
-	for(int i = 0; i < tableSize; i++)
-		cout << buckets[i].size() << endl;
 
 	/* Create hash functions */
 	for(int i = 0; i < k; i++)
@@ -106,13 +114,13 @@ euclidean<T>::euclidean(int k, int dataset_sz) : k(k){
 
 template <class T>
 int euclidean<T>::get_bucket_num(vector<int>& hvalues){
-	long int f = 0.0;
+	long long int f = 0;
 
 	/* Calculation of: [(r1*h1 + r2*h2 + ... + rk*hk)modM]mod TS */
 	for(int i = 0; i < k; i++)
-		f += (hvalues[i] * r[i]) % this->M;
+		f += my_mod(hvalues[i] * r[i] ,this->M);
 
-	f = f % this->M;
+	f = my_mod(f, this->M);
 	
 	f = f % this->tableSize;
 
@@ -138,7 +146,73 @@ void euclidean<T>::add_vector(vector_item<T>* new_vector){
 	/* Compute f(p) */
 	f = get_bucket_num(hvalues);
 
+	if(f < 0)
+		cout << "OVERFLOW" << endl;
 	buckets[f].push_back(new euclidean_vec<T>(new_vector, g));
+}
+
+template <class T>
+vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
+	return this->buckets[index];
+}
+
+
+template <class T>
+void euclidean<T>::findNN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+	vector<int> hvalues; // values returned from hash functions
+	long int g;	// g(p) function
+	int f; // f(p) function <-> bucket index
+
+	/* First we must find the bucket that corresponds to query */
+	/* Get vector points */
+	array<int, D>* query_points = &(query.get_points());
+
+	/* Get all hash functions values */
+	for(int i = 0; i < k; i++)
+		hvalues.push_back(hfs[i].getValue(*query_points));
+
+	/* Compute g(p) */
+	g = h_concantenate(hvalues);
+
+	/* Compute f(p) */
+	f = get_bucket_num(hvalues);
+
+	vector<euclidean_vec<T>*>& buck = get_bucket(f);
+
+	for(unsigned int i = 0; i < buck.size(); i++){
+		euclidean_vec<T>* cur_vec = buck[i]; // get current vector
+		//if(g == cur_vec->get_g()){ // check if same 
+			float dist = eucl_distance(query, cur_vec->get_vec());
+		
+			if(dist <= radius){
+				cout << "\t" << cur_vec->get_vec().get_id();
+			}
+			if(dist <= min_dist || min_dist == 0.0){
+				min_dist = dist;
+				NN_name.assign((cur_vec->get_vec()).get_id());
+			}
+		//}
+	}
+
+}
+
+template <class T>
+float euclidean<T>::eucl_distance(vector_item<T>& vec1, vector_item<T>& vec2){
+	if(vec1.get_size() != vec2.get_size()){
+		cout << "Invalid dimensions" << endl;
+		exit(0);
+	}
+
+	float dist = 0.0;
+
+	array<T, D>& arr1 = vec1.get_points();
+	array<T, D>& arr2 = vec2.get_points();
+
+
+	for(unsigned int i = 0; i < arr1.size(); i++)
+		dist += pow(arr1[i] - arr2[i], 2);
+
+	return dist;
 }
 
 
@@ -203,4 +277,72 @@ void csimilarity<T>::add_vector(vector_item<T>* new_vector){
 	}
 
 	buckets[f].push_back(new_vector);
+}
+
+template <class T>
+vector<vector_item<T>*>& csimilarity<T>::get_bucket(int index){
+	return this->buckets[index];
+}
+
+
+template <class T>
+void csimilarity<T>::findNN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+	int f = 0; // f(p) function <-> bucket index
+
+	/* First we must find the bucket that corresponds to query */
+	/* Get vector points */
+	array<int, D>* query_points = &(query.get_points());
+
+	for(int i = 0; i < k; i++){
+		int temp = hfs[i].getValue(*query_points);
+		f += temp * pow(2, k - i - 1); // compute binary value
+	}
+
+	vector<vector_item<T>*>& buck = get_bucket(f);
+
+	for(unsigned int i = 0; i < buck.size(); i++){
+		vector_item<T>* cur_vec = buck[i]; // get current vector
+		
+		/* Calculate distance between vectors */
+		float dist = cs_distance(query, *cur_vec);
+	
+		if(dist <= radius){
+			cout << "\t" << cur_vec->get_id() << endl;
+		}
+		if(dist <= min_dist || min_dist == 0.0){
+			min_dist = dist;
+			NN_name.assign(cur_vec->get_id());
+		}
+	}
+
+}
+
+template <class T>
+float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
+	if(vec1.get_size() != vec2.get_size()){
+		cout << "Invalid dimensions" << endl;
+		exit(0);
+	}
+
+	float dist;
+	float euc_dist = 0.0;
+	float arr1_norm = 0.0;
+	float arr2_norm = 0.0;
+
+	array<T, D>& arr1 = vec1.get_points();
+	array<T, D>& arr2 = vec2.get_points();
+
+
+	for(unsigned int i = 0; i < arr1.size(); i++){
+		euc_dist += (arr1[i] * arr2[i]);
+		arr1_norm += arr1[i] * arr1[i];
+		arr2_norm += arr2[i] * arr2[i];
+	}
+
+	arr1_norm = sqrt(arr1_norm);
+	arr2_norm = sqrt(arr2_norm);
+
+	dist = euc_dist / (arr1_norm * arr2_norm);
+
+	return dist;
 }

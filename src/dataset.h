@@ -31,8 +31,9 @@ class vector_item{
         void print();
 
         /* Accessors */
-        //std::string get_id();
+        std::string get_id(); // returns name as string
         std::array<T, D>& get_points(); // returns an array with all the points of vector
+        int get_size(); // returns size of vector
 };
 
 /* Container that holds records(vector_item) */
@@ -50,6 +51,8 @@ class dataset{
         
         /* Accessors */
         int get_counter();
+
+        /* Returns the item stored int the index given */
         vector_item<T>* get_item(int); 
         void print();
 };
