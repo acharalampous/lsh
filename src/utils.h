@@ -9,6 +9,8 @@
 #pragma once
 #include <array>
 #include <vector>
+#include <string>
+
 #include "dataset.h"
 
 /*  Header file for all variant functions and structs used
@@ -23,3 +25,9 @@ long long int h_concantenate(std::vector<int>&);
 
 /* Returns the modulo of the given integers */
 long long int my_mod(int, long int);
+
+/* Extract metrics from string, and return the corresponding number */
+int get_metrics(std::string&);
+
+/* Extract radius from query file */
+float get_radius(std::string&);

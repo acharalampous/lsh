@@ -40,9 +40,9 @@ euclidean_vec<T>::euclidean_vec(vector_item<T>* vec, vector<int>* g){
 
 template <class T>
 void euclidean_vec<T>::print(){
-	cout << "I am item in euclidean vec with g: " endl;
-	for(unsigned int i = 0; i < this->g.size(); i++)
-		cout << g[i];
+	cout << "I am item in euclidean vec with g: " << endl;
+	for(unsigned int i = 0; i < this->g->size(); i++)
+		cout << (*g)[i];
 	cout << endl;
 
 	this->vec->print();
@@ -159,7 +159,7 @@ vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
 
 
 template <class T>
-void euclidean<T>::findNN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
 	vector<int> hvalues; // values returned from hash functions
 	int f; // f(p) function <-> bucket index
 
@@ -300,7 +300,7 @@ vector<vector_item<T>*>& csimilarity<T>::get_bucket(int index){
 
 
 template <class T>
-void csimilarity<T>::findNN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
 	int f = 0; // f(p) function <-> bucket index
 
 	/* First we must find the bucket that corresponds to query */

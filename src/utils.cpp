@@ -42,3 +42,34 @@ long long int my_mod(int a, long int b){
 	long long int res = a - ((floor( (long double)a / (long double)b) ) * b); 
     return res;
 }
+
+int get_metrics(string& metrics){
+    int result = 0;
+    if(metrics.empty()) // no definition -> use euclidean only
+        return 1;
+    
+    if(metrics.compare(0, 9, "@metric ")) // check if metrics given
+        return 0;
+
+    if(metrics.find("euclidean") != string::npos) // euclidean is defined
+        result = 1;
+    
+    if(metrics.find("cosine") != string::npos) // cosine is defined
+        result |= 2;
+
+    return result;
+}
+
+float get_radius(std::string& radius){
+    if(radius.compare(0, 9, "Radius: <")) // check if metrics given
+        return 0;
+
+    int pos1 = radius.find('<');
+    int pos2 = radius.find('>');
+
+    string temp = radius.substr(pos1, pos2 - pos1);
+
+    float result = stof(temp);
+
+    return result;
+}

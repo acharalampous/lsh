@@ -85,7 +85,7 @@ class euclidean{
         std::vector<euclidean_vec<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findNN(vector_item<T>&, float, float&, std::string&);
+        void findANN(vector_item<T>&, float, float&, std::string&);
 
         /* Computes the euclidean distance of 2 vectors */
         float eucl_distance(vector_item<T>&, vector_item<T>&);
@@ -132,7 +132,7 @@ class csimilarity{
         std::vector<vector_item<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findNN(vector_item<T>&, float, float&, std::string&);
+        void findANN(vector_item<T>&, float, float&, std::string&);
 
         float cs_distance(vector_item<T>&, vector_item<T>&);
 };
