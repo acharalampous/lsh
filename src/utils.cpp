@@ -7,7 +7,6 @@
  */
 /********************************/
 #include <iostream>
-#include <array>
 #include <cmath>
 #include "utils.h"
 #include "dataset.h"
@@ -16,7 +15,7 @@ using namespace std;
 
 /*  All functions implementions that are defined in utils.h */
 
-
+/* Compute inner product of two vectors */
 float vector_product(std::array<float, D>& vec1, std::array<int, D>& vec2){
     float product = 0.0;
 
@@ -38,6 +37,7 @@ long long int h_concantenate(vector<int>& hs){
     return stoll(res_str);
 }
 
+/* Computes and returns the modulo of the ginen values a mod b */
 long long int my_mod(int a, long int b){
 	long long int res = a - ((floor( (long double)a / (long double)b) ) * b); 
     return res;

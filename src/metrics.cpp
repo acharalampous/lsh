@@ -33,14 +33,18 @@ template class csimilarity<int>;
 
 /** euclidean_vec **/
 template <class T>
-euclidean_vec<T>::euclidean_vec(vector_item<T>* vec, long int g){
+euclidean_vec<T>::euclidean_vec(vector_item<T>* vec, vector<int>* g){
 	this->vec = vec;
 	this->g = g;
 }
 
 template <class T>
 void euclidean_vec<T>::print(){
-	cout << "I am item in euclidean vec with g = " << g << " and points:" << endl;
+	cout << "I am item in euclidean vec with g: " endl;
+	for(unsigned int i = 0; i < this->g.size(); i++)
+		cout << g[i];
+	cout << endl;
+
 	this->vec->print();
 }
 
@@ -50,8 +54,8 @@ vector_item<T>& euclidean_vec<T>::get_vec(){
 }
 
 template <class T>
-long long int euclidean_vec<T>::get_g(){
-	return this->g;
+vector<int>& euclidean_vec<T>::get_g(){
+	return *(this->g);
 }
 
 
@@ -71,6 +75,7 @@ euclideanHF::euclideanHF(){
 	t = real_random(gen);
 }
 
+/* Get value of hash function */
 int euclideanHF::getValue(array<int, D>& vec){
 	/* Calculation of: floor([ ( p * v ) + t) ] / w) */
 
@@ -129,8 +134,7 @@ int euclidean<T>::get_bucket_num(vector<int>& hvalues){
 
 template <class T>
 void euclidean<T>::add_vector(vector_item<T>* new_vector){
-	vector<int> hvalues; // values returned from hash functions
-	long int g;	// g(p) function
+	vector<int>* hvalues = new vector<int>; // values returned from hash functions
 	int f; // f(p) function <-> bucket index 
 	
 	/* Get vector points */
@@ -138,17 +142,14 @@ void euclidean<T>::add_vector(vector_item<T>* new_vector){
 
 	/* Get all hash functions values */
 	for(int i = 0; i < k; i++)
-		hvalues.push_back(hfs[i].getValue(*vec_points));
-
-	/* Compute g(p) */
-	g = h_concantenate(hvalues);
+		hvalues->push_back(hfs[i].getValue(*vec_points));
 
 	/* Compute f(p) */
-	f = get_bucket_num(hvalues);
+	f = get_bucket_num(*hvalues);
 
 	if(f < 0)
 		cout << "OVERFLOW" << endl;
-	buckets[f].push_back(new euclidean_vec<T>(new_vector, g));
+	buckets[f].push_back(new euclidean_vec<T>(new_vector, hvalues));
 }
 
 template <class T>
@@ -160,7 +161,6 @@ vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
 template <class T>
 void euclidean<T>::findNN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
 	vector<int> hvalues; // values returned from hash functions
-	long int g;	// g(p) function
 	int f; // f(p) function <-> bucket index
 
 	/* First we must find the bucket that corresponds to query */
@@ -171,9 +171,6 @@ void euclidean<T>::findNN(vector_item<T>& query, float radius, float& min_dist, 
 	for(int i = 0; i < k; i++)
 		hvalues.push_back(hfs[i].getValue(*query_points));
 
-	/* Compute g(p) */
-	g = h_concantenate(hvalues);
-
 	/* Compute f(p) */
 	f = get_bucket_num(hvalues);
 
@@ -181,17 +178,19 @@ void euclidean<T>::findNN(vector_item<T>& query, float radius, float& min_dist, 
 
 	for(unsigned int i = 0; i < buck.size(); i++){
 		euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-		//if(g == cur_vec->get_g()){ // check if same 
+		if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
 			float dist = eucl_distance(query, cur_vec->get_vec());
-		
+
+			/* Print item in radius of query */
 			if(dist <= radius){
 				cout << "\t" << cur_vec->get_vec().get_id();
 			}
+			/* Check if nearest neighbour */
 			if(dist <= min_dist || min_dist == 0.0){
 				min_dist = dist;
 				NN_name.assign((cur_vec->get_vec()).get_id());
 			}
-		//}
+		}
 	}
 
 }
@@ -215,6 +214,21 @@ float euclidean<T>::eucl_distance(vector_item<T>& vec1, vector_item<T>& vec2){
 	return dist;
 }
 
+template <class T>
+int euclidean<T>::comp_gs(vector<int>& g1, vector<int>& g2){
+	/* Check if same dimensions */
+	if(g1.size() != g2.size())
+		return 0;
+
+	/* Check all values */
+	for(unsigned int i = 0; i < g1.size(); i++){
+		if(g1[i] != g2[i])
+			return 0;
+	}
+
+	/* Reaching this point means that vectors(gs) are the same */
+	return 1;
+}
 
 
 
@@ -236,19 +250,19 @@ csimilarityHF::csimilarityHF(){
 
 }
 
+/* Get value of hash function */
 int csimilarityHF::getValue(array<int, D>& vec){
 	
 	float product = vector_product(r, vec);
 	
+	/* if product > 0 return 1, else return 0 */
 	return (product >= 0)? 1 : 0;
 
 }
 
 void csimilarityHF::print(){
-
 	for (unsigned int i = 0; i < D; i++)
 		cout << i << ". " << r[i] << endl;
-
 }
 
 
@@ -319,7 +333,8 @@ void csimilarity<T>::findNN(vector_item<T>& query, float radius, float& min_dist
 
 template <class T>
 float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
-	if(vec1.get_size() != vec2.get_size()){
+	/* Compute ((vec1 * vec2) / (||vec1||*||vec2||)) */
+ 	if(vec1.get_size() != vec2.get_size()){
 		cout << "Invalid dimensions" << endl;
 		exit(0);
 	}
@@ -334,9 +349,9 @@ float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
 
 
 	for(unsigned int i = 0; i < arr1.size(); i++){
-		euc_dist += (arr1[i] * arr2[i]);
-		arr1_norm += arr1[i] * arr1[i];
-		arr2_norm += arr2[i] * arr2[i];
+		euc_dist += (arr1[i] * arr2[i]); // vec1 & vec2
+		arr1_norm += arr1[i] * arr1[i]; // ||vec1||
+		arr2_norm += arr2[i] * arr2[i]; // ||vec2||
 	}
 
 	arr1_norm = sqrt(arr1_norm);

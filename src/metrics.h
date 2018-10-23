@@ -34,15 +34,16 @@ template <class T>
 class euclidean_vec{
     private:
         vector_item<T>* vec; // pointer to vector in dataset
-        long long int g; // value of g(p)
+        std::vector<int>* g; // holds all hash function values
     public:
-        euclidean_vec(vector_item<T>*, long int);
+        /* Constructor */
+        euclidean_vec(vector_item<T>*, std::vector<int>*);
         
         void print();
 
         /* Acessors */
         vector_item<T>& get_vec();
-        long long int get_g();
+        std::vector<int>& get_g();
 };
 
 
@@ -89,6 +90,8 @@ class euclidean{
         /* Computes the euclidean distance of 2 vectors */
         float eucl_distance(vector_item<T>&, vector_item<T>&);
 
+        /* Returns 1 if gs given are the same, else 0 */
+        int comp_gs(std::vector<int>&,std::vector<int>&);
 };
 
 

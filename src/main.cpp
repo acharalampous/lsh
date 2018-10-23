@@ -39,7 +39,7 @@ int main(void){
         string min_name = "";
         vector_item<int>* q_vector = new vector_item<int>(line, i);
         cout << "QueryItem_" << i++ << endl;
-        cs.findNN(*q_vector, radius, min_dist, min_name);
+        ed.findNN(*q_vector, radius, min_dist, min_name);
         cout << "\tNearest Neighbour: " << min_name << " with distance: " << min_dist << endl;
         delete q_vector;
     }
