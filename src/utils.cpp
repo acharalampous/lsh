@@ -48,7 +48,7 @@ int get_metrics(string& metrics){
     if(metrics.empty()) // no definition -> use euclidean only
         return 1;
     
-    if(metrics.compare(0, 9, "@metric ")) // check if metrics given
+    if(metrics.compare(0, 8, "@metric ")) // check if metrics given
         return 0;
 
     if(metrics.find("euclidean") != string::npos) // euclidean is defined
@@ -62,12 +62,12 @@ int get_metrics(string& metrics){
 
 float get_radius(std::string& radius){
     if(radius.compare(0, 9, "Radius: <")) // check if metrics given
-        return 0;
+        return -1;
 
     int pos1 = radius.find('<');
     int pos2 = radius.find('>');
 
-    string temp = radius.substr(pos1, pos2 - pos1);
+    string temp = radius.substr(pos1 + 1, pos2 - pos1 - 1);
 
     float result = stof(temp);
 

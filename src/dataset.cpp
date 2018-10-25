@@ -28,6 +28,32 @@ template class dataset<int>;
 //** VECTOR_ITEM **//
 /////////////////////
 template <class T>
+vector_item<T>::vector_item(string& new_vector){
+    string point;
+	string id;
+
+	istringstream iss(new_vector, istringstream::in); 
+
+    /* Extract item name */
+    iss >> id;
+
+    /* Save item name */
+    item_id = id;    
+
+    /* Extract all points from string and insert in array */
+    int i = 0;
+	while( iss >> point )     
+	{
+        //cout << i << ". " << point << endl;
+	    coordinates[i] = stoi(point); 
+        i++;
+	}
+    if(coordinates.size() != D) // check if valid points where given
+        cout << "[Creation of vector_item] Invalid dimensions in vector! Abort." << endl;
+}
+
+
+template <class T>
 vector_item<T>::vector_item(string& new_vector, int id){
 	string point;
 	
@@ -87,7 +113,7 @@ int vector_item<T>::get_size(){
 template <class T>
 void dataset<T>::add_vector(string& new_vector){
     /* Push new vector */
-    vectors.push_back(new vector_item<T>(new_vector, counter));
+    vectors.push_back(new vector_item<T>(new_vector));
     
     /* Increase num of vectors */
     counter++;

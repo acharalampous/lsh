@@ -176,19 +176,39 @@ void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 
 	vector<euclidean_vec<T>*>& buck = get_bucket(f);
 
-	for(unsigned int i = 0; i < buck.size(); i++){
-		euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-		if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
-			float dist = eucl_distance(query, cur_vec->get_vec());
+	/* If radius was given as 0, find only the nearest neighbour */
+	if(radius == 0){
+		for(unsigned int i = 0; i < buck.size(); i++){
+			euclidean_vec<T>* cur_vec = buck[i]; // get current vector
+			if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
+				float dist = eucl_distance(query, cur_vec->get_vec());
 
-			/* Print item in radius of query */
-			if(dist <= radius){
-				cout << "\t" << cur_vec->get_vec().get_id();
+				/* Check if nearest neighbour */
+				if(dist <= min_dist || min_dist == 0.0){
+					min_dist = dist;
+					NN_name.assign((cur_vec->get_vec()).get_id());
+				}
 			}
-			/* Check if nearest neighbour */
-			if(dist <= min_dist || min_dist == 0.0){
-				min_dist = dist;
-				NN_name.assign((cur_vec->get_vec()).get_id());
+		}
+	}
+
+
+	/* Else check for items in radius */
+	else{
+		for(unsigned int i = 0; i < buck.size(); i++){
+			euclidean_vec<T>* cur_vec = buck[i]; // get current vector
+			if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
+				float dist = eucl_distance(query, cur_vec->get_vec());
+
+				/* Print item in radius of query */
+				if(dist <= radius){
+					cout << "\t" << cur_vec->get_vec().get_id();
+				}
+				/* Check if nearest neighbour */
+				if(dist <= min_dist || min_dist == 0.0){
+					min_dist = dist;
+					NN_name.assign((cur_vec->get_vec()).get_id());
+				}
 			}
 		}
 	}
@@ -210,6 +230,8 @@ float euclidean<T>::eucl_distance(vector_item<T>& vec1, vector_item<T>& vec2){
 
 	for(unsigned int i = 0; i < arr1.size(); i++)
 		dist += pow(arr1[i] - arr2[i], 2);
+
+	dist = sqrt(dist);
 
 	return dist;
 }

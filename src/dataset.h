@@ -24,6 +24,7 @@ class vector_item{
         std::array<T, D> coordinates; // points of vector
     public:
         /* Given the points of vector and id, create a new vector_item */
+        vector_item(std::string&);
         vector_item(std::string&, int);
         //~vector_item(){std::cout << "[Vector_item - " << item_id << "] I am getting destroyed" << std::endl;};
 
