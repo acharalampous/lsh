@@ -12,6 +12,8 @@
 
 #include "metrics.h"
 
+#define DEFAULT_L 5
+
 /*  Implementation of the class that uses the LSH algorithm */
 
 /* Class of LSH that holds all the metrics */
@@ -29,5 +31,5 @@ class LSH{
         void add_vector(vector_item<T>*);
 
         /* Finds ANN of given vector, searching in all hash tables */
-        void findANN(vector_item<T>&, float, float&, std::string&);
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
 };

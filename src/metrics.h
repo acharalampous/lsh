@@ -12,6 +12,7 @@
 #include <list>
 #include "dataset.h"
 
+#define DEFAULT_K 4
 #define W 300 // window
 #define TS_DIVISOR 2 // for tablesize in euclidean
 /* For random vector r, in euclidean */
@@ -85,7 +86,7 @@ class euclidean{
         std::vector<euclidean_vec<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findANN(vector_item<T>&, float, float&, std::string&);
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
 
         /* Computes the euclidean distance of 2 vectors */
         float eucl_distance(vector_item<T>&, vector_item<T>&);

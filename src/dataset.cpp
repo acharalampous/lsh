@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <stdexcept>
 
 #include "dataset.h"
 
@@ -42,14 +43,23 @@ vector_item<T>::vector_item(string& new_vector){
 
     /* Extract all points from string and insert in array */
     int i = 0;
-	while( iss >> point )     
-	{
-        //cout << i << ". " << point << endl;
-	    coordinates[i] = stoi(point); 
-        i++;
-	}
-    if(coordinates.size() != D) // check if valid points where given
+    try {
+        while( iss >> point )     
+        {
+            //if(!isNumber(point)){} // VERY SLOW
+            coordinates[i] = stoi(point); 
+            i++;
+        }    
+    }catch(std::invalid_argument& e){
+        cout << "[ERROR] Invalid vector was given. Probably characters were provided. Check your file" << endl;
+        cout << "Aborting..." << endl; 
+        exit(-1);
+    }
+
+    if(coordinates.size() != D){ // check if valid points where given
         cout << "[Creation of vector_item] Invalid dimensions in vector! Abort." << endl;
+        exit(-1);
+    } 
 }
 
 

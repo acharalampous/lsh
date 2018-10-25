@@ -10,6 +10,7 @@
 #include <ctime>
 #include <random>
 #include <cmath>
+#include <fstream>
 
 #include "metrics.h"
 #include "utils.h"
@@ -159,7 +160,8 @@ vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
 
 
 template <class T>
-void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output){
+	string tab = "\t";
 	vector<int> hvalues; // values returned from hash functions
 	int f; // f(p) function <-> bucket index
 
@@ -202,7 +204,7 @@ void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 
 				/* Print item in radius of query */
 				if(dist <= radius){
-					cout << "\t" << cur_vec->get_vec().get_id();
+					output << tab << cur_vec->get_vec().get_id() << endl;
 				}
 				/* Check if nearest neighbour */
 				if(dist <= min_dist || min_dist == 0.0){

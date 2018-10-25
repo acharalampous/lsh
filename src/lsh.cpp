@@ -46,9 +46,9 @@ void LSH<T>::add_vector(vector_item<T>* new_vector){
 }
 
 template <class T>
-void LSH<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& ANN_name){
+void LSH<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& ANN_name, ofstream& output){
     for(unsigned int i = 0; i < eu_tables.size(); i++){
-        eu_tables[i]->findANN(query, radius, min_dist, ANN_name);
+        eu_tables[i]->findANN(query, radius, min_dist, ANN_name, output);
     }
 
     for(unsigned int i = 0; i < cs_tables.size(); i++){
