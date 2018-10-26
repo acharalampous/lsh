@@ -194,15 +194,16 @@ int new_execution(ifstream& input, ifstream& query, ofstream& output){
 
         if(!choice.compare("y") || !choice.compare("Y") || !choice.compare("yes") ){
             cout << "Please choose one of the following(select number):" << endl;
-            cout << "0 Same files as before" << endl;
-            cout << "1 New Dataset" << endl;
-            cout << "2 New Query File" << endl;
-            cout << "3 New Output File" << endl;
-            cout << "4 New Dataset and Query File" << endl;
-            cout << "5 New Dataset and Output File" << endl;
-            cout << "6 New Query and Output File" << endl;
-            cout << "7 Entirely New Files" << endl;
-            cout << "8 I Changed My Mind. I Want To Exit\n" << endl;
+            cout << "  0 Same files as before" << endl;
+            cout << "  1 New Dataset" << endl;
+            cout << "  2 New Query File" << endl;
+            cout << "  3 New Output File" << endl;
+            cout << "  4 New Dataset and Query File" << endl;
+            cout << "  5 New Dataset and Output File" << endl;
+            cout << "  6 New Query and Output File" << endl;
+            cout << "  7 Entirely New Files" << endl;
+            cout << "  8 I Changed My Mind. I Want To Exit\n" << endl;
+            cout << "Note: If you use the same output file name, the previous one will be replaced!\n" << endl;
             cout << "My choice: ";
 
             fflush(stdout);

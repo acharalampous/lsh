@@ -40,6 +40,12 @@ euclidean_vec<T>::euclidean_vec(vector_item<T>* vec, vector<int>* g){
 }
 
 template <class T>
+euclidean_vec<T>::~euclidean_vec(){
+	/* this->vec will be deleted in dataset */
+	delete this->g;
+}
+
+template <class T>
 void euclidean_vec<T>::print(){
 	cout << "I am item in euclidean vec with g: " << endl;
 	for(unsigned int i = 0; i < this->g->size(); i++)
@@ -116,6 +122,21 @@ euclidean<T>::euclidean(int k, int dataset_sz) : k(k){
 	uniform_int_distribution<int> rand_Z(MIN_Ri,MAX_Ri); 
 	for(int i = 0; i < k; i++)
 		r.push_back(rand_Z(gen));
+}
+
+template <class T>
+euclidean<T>::~euclidean(){
+	/* this->vec will be deleted in dataset */
+	hfs.clear();
+	r.clear();
+	for(int i = 0; i < tableSize; i++){
+		for(unsigned int j = 0; j < buckets[i].size(); j++){
+			delete buckets[i][j];
+		}
+		buckets[i].clear();
+	}
+
+	delete [] buckets;
 }
 
 template <class T>
@@ -290,6 +311,7 @@ void csimilarityHF::print(){
 }
 
 
+/* csimilarity */
 template <class T>
 csimilarity<T>::csimilarity(int k){
 	this->k = k;
@@ -299,6 +321,14 @@ csimilarity<T>::csimilarity(int k){
 
 	for(int i = 0; i < k; i++)
 		hfs.push_back(csimilarityHF());
+}
+
+template <class T>
+csimilarity<T>::~csimilarity(){
+	/* this->vec will be deleted in dataset */
+	hfs.clear();
+
+	delete [] buckets;
 }
 
 template <class T>
@@ -324,7 +354,7 @@ vector<vector_item<T>*>& csimilarity<T>::get_bucket(int index){
 
 
 template <class T>
-void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name){
+void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output){
 	int f = 0; // f(p) function <-> bucket index
 
 	/* First we must find the bucket that corresponds to query */
@@ -338,26 +368,41 @@ void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dis
 
 	vector<vector_item<T>*>& buck = get_bucket(f);
 
-	for(unsigned int i = 0; i < buck.size(); i++){
-		vector_item<T>* cur_vec = buck[i]; // get current vector
-		
-		/* Calculate distance between vectors */
-		float dist = cs_distance(query, *cur_vec);
-	
-		if(dist <= radius){
-			cout << "\t" << cur_vec->get_id() << endl;
-		}
-		if(dist <= min_dist || min_dist == 0.0){
-			min_dist = dist;
-			NN_name.assign(cur_vec->get_id());
+	/* If radius was given as 0, find only the nearest neighbour */
+	if(radius == 0){
+		for(unsigned int i = 0; i < buck.size(); i++){
+			vector_item<T>* cur_vec = buck[i]; // get current vector
+			float dist = cs_distance(query, *cur_vec);
+
+			/* Check if nearest neighbour */
+			if(dist <= min_dist || min_dist == 0.0){
+				min_dist = dist;
+				NN_name.assign(cur_vec->get_id());
+			}
 		}
 	}
 
+
+	/* Else check for items in radius */
+	else{
+		for(unsigned int i = 0; i < buck.size(); i++){
+			vector_item<T>* cur_vec = buck[i]; // get current vector
+			float dist = cs_distance(query, *cur_vec);
+
+			if(dist <= radius)
+				output << "\t" << cur_vec->get_id() << endl;
+			/* Check if nearest neighbour */
+			if(dist <= min_dist || min_dist == 0.0){
+				min_dist = dist;
+				NN_name.assign(cur_vec->get_id());
+			}
+		}
+	}
 }
 
 template <class T>
 float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
-	/* Compute ((vec1 * vec2) / (||vec1||*||vec2||)) */
+	/* Compute (1 - ((vec1 * vec2) / (||vec1||*||vec2||))) */
  	if(vec1.get_size() != vec2.get_size()){
 		cout << "Invalid dimensions" << endl;
 		exit(0);
@@ -382,6 +427,7 @@ float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
 	arr2_norm = sqrt(arr2_norm);
 
 	dist = euc_dist / (arr1_norm * arr2_norm);
+	dist = 1 - dist;
 
 	return dist;
 }

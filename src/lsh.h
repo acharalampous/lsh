@@ -26,6 +26,7 @@ class LSH{
     public:
         /* Given number of tables, metrics and number of input, create LSH structure */
         LSH(int, int, int, int);
+        ~LSH();
 
         /* Add a new vector in all the hash tables */
         void add_vector(vector_item<T>*);

@@ -39,6 +39,7 @@ class euclidean_vec{
     public:
         /* Constructor */
         euclidean_vec(vector_item<T>*, std::vector<int>*);
+        ~euclidean_vec();
         
         void print();
 
@@ -75,6 +76,7 @@ class euclidean{
 	public:
         /* Constructor */
 		euclidean(int, int);
+        ~euclidean();
         
         /* Returns the result of hash functions for a vector */
         int get_bucket_num(std::vector<int>&);
@@ -126,6 +128,7 @@ class csimilarity{
 	public:
         /* Con-De structor */
 		csimilarity(int);
+        ~csimilarity();
 
         void add_vector(vector_item<T>*);
 
@@ -133,7 +136,7 @@ class csimilarity{
         std::vector<vector_item<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findANN(vector_item<T>&, float, float&, std::string&);
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
 
         float cs_distance(vector_item<T>&, vector_item<T>&);
 };

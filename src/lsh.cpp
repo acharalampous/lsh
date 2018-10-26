@@ -35,6 +35,21 @@ LSH<T>::LSH(int metrics, int L, int k, int n){
 }
 
 template <class T>
+LSH<T>::~LSH(){
+    for(unsigned int i = 0; i < eu_tables.size(); i++){
+        delete eu_tables[i];
+    }
+
+    eu_tables.clear();
+
+    for(unsigned int i = 0; i < cs_tables.size(); i++){
+        delete cs_tables[i];
+    }
+
+    cs_tables.clear();
+}
+
+template <class T>
 void LSH<T>::add_vector(vector_item<T>* new_vector){
     for(unsigned int i = 0; i < eu_tables.size(); i++){
         eu_tables[i]->add_vector(new_vector);
@@ -52,6 +67,6 @@ void LSH<T>::findANN(vector_item<T>& query, float radius, float& min_dist, strin
     }
 
     for(unsigned int i = 0; i < cs_tables.size(); i++){
-        cs_tables[i]->findANN(query, radius, min_dist, ANN_name);
+        cs_tables[i]->findANN(query, radius, min_dist, ANN_name, output);
     }
 }
