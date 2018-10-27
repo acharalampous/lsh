@@ -10,11 +10,14 @@
 #include <array>
 #include <vector>
 #include <list>
+#include <unordered_set>
+
 #include "dataset.h"
 
 #define DEFAULT_K 4
 #define W 300 // window
 #define TS_DIVISOR 2 // for tablesize in euclidean
+
 /* For random vector r, in euclidean */
 #define MIN_Ri -40 
 #define MAX_Ri 40
@@ -88,10 +91,7 @@ class euclidean{
         std::vector<euclidean_vec<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
-
-        /* Computes the euclidean distance of 2 vectors */
-        float eucl_distance(vector_item<T>&, vector_item<T>&);
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&, std::unordered_set<std::string>&);
 
         /* Returns 1 if gs given are the same, else 0 */
         int comp_gs(std::vector<int>&,std::vector<int>&);
@@ -136,7 +136,5 @@ class csimilarity{
         std::vector<vector_item<T>*>& get_bucket(int);
 
         /* Given a query vector, finds the nearest neighbours */ 
-        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
-
-        float cs_distance(vector_item<T>&, vector_item<T>&);
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&, std::unordered_set<std::string>&);
 };

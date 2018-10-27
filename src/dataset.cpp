@@ -62,28 +62,6 @@ vector_item<T>::vector_item(string& new_vector){
     } 
 }
 
-
-template <class T>
-vector_item<T>::vector_item(string& new_vector, int id){
-	string point;
-	
-	istringstream iss(new_vector, istringstream::in); 
-
-    /* Extract all points from string and insert in array */
-    int i = 0;
-	while( iss >> point )     
-	{
-        //cout << i << ". " << point << endl;
-	    coordinates[i] = stoi(point); 
-        i++;
-	}
-    if(coordinates.size() != D) // check if valid points where given
-        cout << "[Creation of vector_item] Invalid dimensions in vector! Abort." << endl;
-
-    /* Save item name */
-    item_id = "Item_" + to_string(id);
-}
-
 /* Print info about vector_item(Debugging) */
 template <class T>
 void vector_item<T>::print(){
@@ -96,7 +74,7 @@ void vector_item<T>::print(){
 
 /* Returns item name */
 template <class T>
-string vector_item<T>::get_id(){
+string& vector_item<T>::get_id(){
     return this->item_id;
 }
 
@@ -119,6 +97,14 @@ int vector_item<T>::get_size(){
 // DATASET //
 /////////////
 
+/* Destroy all vector_items */
+template <class T>
+dataset<T>::~dataset(){
+    for(unsigned int i = 0; i < vectors.size(); i++)
+        delete vectors[i];
+    vectors.clear();
+}
+
 /* Push new vector in dataset, increase counter */
 template <class T>
 void dataset<T>::add_vector(string& new_vector){
@@ -137,14 +123,6 @@ int dataset<T>::get_counter(){
 template <class T>
 vector_item<T>* dataset<T>::get_item(int index){
     return vectors[index];
-}
-
-/* Destroy all vector_items */
-template <class T>
-dataset<T>::~dataset(){
-    for(unsigned int i = 0; i < vectors.size(); i++)
-        delete vectors[i];
-    vectors.clear();
 }
 
 /* Print info about dataset(Debugging) */

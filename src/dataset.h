@@ -25,14 +25,12 @@ class vector_item{
     public:
         /* Given the points of vector and id, create a new vector_item */
         vector_item(std::string&);
-        vector_item(std::string&, int);
-        //~vector_item(){std::cout << "[Vector_item - " << item_id << "] I am getting destroyed" << std::endl;};
-
+        
         /* Print vector stats */
         void print();
 
         /* Accessors */
-        std::string get_id(); // returns name as string
+        std::string& get_id(); // returns id as string
         std::array<T, D>& get_points(); // returns an array with all the points of vector
         int get_size(); // returns size of vector
 };
@@ -47,13 +45,15 @@ class dataset{
         dataset(): counter(0){};
         ~dataset();
         
-        /* Given a string with all the points, create new records and push */
+        /* Given a string with all the points, create new record and push */
         void add_vector(std::string&);
         
         /* Accessors */
         int get_counter();
 
-        /* Returns the item stored int the index given */
+        /* Returns pointer to the item stored int the index given */
         vector_item<T>* get_item(int); 
+        
+        /* Debugging */
         void print();
 };

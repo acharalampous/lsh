@@ -8,11 +8,15 @@
 /********************************/
 #include <iostream>
 #include <cmath>
+
 #include "utils.h"
-#include "dataset.h"
+#include "metrics.h"
 
 using namespace std;
 
+template float exchausting_s(dataset<int>&, vector_item<int>&, int);
+template float eucl_distance(vector_item<int>&, vector_item<int>&);
+template float cs_distance(vector_item<int>&, vector_item<int>&);
 /*  All functions implementions that are defined in utils.h */
 
 int get_parameters(int argc, char** argv, string& input_file, string& queryset_file, string& output_file, int& k, int& L){
@@ -156,7 +160,7 @@ long long int my_mod(int a, long int b){
 }
 
 int get_metrics(string& metrics){
-    if(metrics.empty()) // no definition -> use euclidean only
+    if(metrics.empty()) // no definition, use euclidean
         return 0;
 
     if(metrics.find("euclidean") != string::npos) // euclidean is defined
@@ -165,22 +169,84 @@ int get_metrics(string& metrics){
     if(metrics.find("cosine") != string::npos) // cosine is defined
         return 2;
 
-    return 0;
+    return 0; // nothing was defined, use euclidean
 }
 
-float get_radius(std::string& radius){
+double get_radius(std::string& radius){
     if(radius.compare(0, 9, "Radius: <")) // check if radius is given
         return -1;
 
+    /* Extract radius */
     int pos1 = radius.find('<');
     int pos2 = radius.find('>');
 
     string temp = radius.substr(pos1 + 1, pos2 - pos1 - 1);
-
-    float result = stof(temp);
+    
+    double result = 0.0;
+    try{
+        result = stod(temp);
+    }catch(invalid_argument){
+        cout << "Invalid radius was given. Radius won't be used at all!" << endl;
+        return 0.0;
+    }
 
     return result;
 }
+
+
+template <class T>
+float eucl_distance(vector_item<T>& vec1, vector_item<T>& vec2){
+	if(vec1.get_size() != vec2.get_size()){
+		cout << "Invalid dimensions" << endl;
+		exit(0);
+	}
+
+	float dist = 0.0;
+
+	array<T, D>& arr1 = vec1.get_points();
+	array<T, D>& arr2 = vec2.get_points();
+
+
+	for(unsigned int i = 0; i < arr1.size(); i++)
+		dist += pow(arr1[i] - arr2[i], 2);
+
+	dist = sqrt(dist);
+
+	return dist;
+}
+
+template <class T>
+float cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
+	/* Compute (1 - ((vec1 * vec2) / (||vec1||*||vec2||))) */
+ 	if(vec1.get_size() != vec2.get_size()){
+		cout << "Invalid dimensions" << endl;
+		exit(0);
+	}
+
+	float dist;
+	float euc_dist = 0.0;
+	float arr1_norm = 0.0;
+	float arr2_norm = 0.0;
+
+	array<T, D>& arr1 = vec1.get_points();
+	array<T, D>& arr2 = vec2.get_points();
+
+
+	for(unsigned int i = 0; i < arr1.size(); i++){
+		euc_dist += (arr1[i] * arr2[i]); // vec1 & vec2
+		arr1_norm += arr1[i] * arr1[i]; // ||vec1||
+		arr2_norm += arr2[i] * arr2[i]; // ||vec2||
+	}
+
+	arr1_norm = sqrt(arr1_norm);
+	arr2_norm = sqrt(arr2_norm);
+
+	dist = euc_dist / (arr1_norm * arr2_norm);
+	dist = 1 - dist;
+
+	return dist;
+}
+
 
 int new_execution(ifstream& input, ifstream& query, ofstream& output){
     string choice;
@@ -255,4 +321,49 @@ int new_execution(ifstream& input, ifstream& query, ofstream& output){
         else
             cout << "Invalid input given. Try again." << endl;
     }
+}
+
+int in_set(unordered_set<string>& check_set, string& id){
+    unordered_set<string>::iterator it;
+
+    it = check_set.find(id);
+    if(it == check_set.end()) // id does not exist
+        return 0;
+    else // id is in set
+        return 1; 
+}
+
+template <class T>
+float exchausting_s(dataset<T>& data_set, vector_item<T>& item, int metric){
+    float min_dist = 0.0;
+    float cur_dist = 0.0;
+
+    int data_sz = data_set.get_counter();
+    if(metric == 1){ // euclidean distance
+
+        /* Check all items in dataset */
+        for(int i = 0; i < data_sz; i++){
+            vector_item<T>& current_item = *(data_set.get_item(i));
+            cur_dist = eucl_distance(current_item, item);
+
+            /* keep distance, if smaller than the minimum */
+            if(cur_dist <= min_dist || min_dist == 0.0)
+                min_dist = cur_dist;
+        }
+    }
+    else if(metric == 2){ // cosine distance
+
+        /* Check all items in dataset */
+        for(int i = 0; i < data_sz; i++){
+            vector_item<T>& current_item = *(data_set.get_item(i));
+            cur_dist = cs_distance(current_item, item);
+
+            /* keep distance, if smaller than the minimum */
+            if(cur_dist <= min_dist || min_dist == -0.1)
+                min_dist = cur_dist;
+        }
+    }
+
+    return min_dist;
+
 }

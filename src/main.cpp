@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <string>
 #include <array>
 #include <sys/stat.h>
 #include <ctime>
@@ -10,22 +9,28 @@
 #include "dataset.h"
 #include "lsh.h"
 
-
 using namespace std;
 
+/* Responsible for the implementation of the LSH algorithm */
+/* Given the necessary files, k and L */
 int executeLSH(ifstream&, ifstream&, ofstream&, int, int);
 
+/* In main, all the necessary arguments and file names are extracted */
 int main(int argc, char* argv[]){
-    dataset<int> my_data;
-    int k = -1;
-    int L = -1;
-    string input_file = "";
+    int k = -1; // number of hash functions
+    int L = -1; // number of hash tables
+    
+    /* File Names */
+    string input_file = "";  
     string query_file = "";
     string output_file = "";
+    
+    /* Files Content */
     ifstream input;
     ifstream query;
     ofstream output;
-    int flag = -1;
+    
+    int flag = -1; // ckecks if user decided to exit
 
 
     /* Check given parameters */
@@ -35,6 +40,7 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
+    /* If not k or L were provided, use the defaults */
     if(k == -1)
         k = DEFAULT_K;
     if(L == -1)
@@ -42,9 +48,12 @@ int main(int argc, char* argv[]){
 
     /* While user decides to exit */
     while(flag != 8){
+
         /* Get input file */
         while(1){ // until correct input file is given
+
             /* Check if input file was provided by parameters */
+            /* Also in case of re-execution, check if user wants another file to be used */
             if(input_file.empty() || (flag != -1 && (!input.is_open()) ) ){
                 cout << "Please provide path to input file(dataset), or .. to abort: ";
                 fflush(stdout);
@@ -52,11 +61,13 @@ int main(int argc, char* argv[]){
                 fflush(stdin);
             }
 
-            if(!input_file.compare("..")){ // Abort
+            /* Abort */
+            if(!input_file.compare("..")){ 
                 cout << "No file was given. Abort." << endl;
                 return -2;
             }
 
+            /* Check if file exists */
             struct stat buffer;
             if(stat (input_file.c_str(), &buffer) != 0){
                 cout << "File " << input_file << " does not exist. Try again." << endl;
@@ -64,7 +75,7 @@ int main(int argc, char* argv[]){
                 continue;
             }
 
-            if(input.is_open()) // close if file was opened
+            if(input.is_open()) // close if file was opened in previous execution
                 input.close();
 
             input.open(input_file); // open file provided 
@@ -74,6 +85,7 @@ int main(int argc, char* argv[]){
 
         /* Get query file */
         while(1){ // until correct file is given
+            
             /* Check if query file was provided by parameters */
             if(query_file.empty() || (flag != -1 && (!query.is_open()))){
                 cout << "Please provide path to query file, or .. to abort: ";
@@ -82,11 +94,13 @@ int main(int argc, char* argv[]){
                 fflush(stdin);
             }
 
-            if(!query_file.compare("..")){ // Abort
+            /* Abort */
+            if(!query_file.compare("..")){ 
                 cout << "No file was given. Abort." << endl;
                 return -2;
             }
 
+            /* Check if file exists */
             struct stat buffer;
             if(stat (query_file.c_str(), &buffer) != 0){
                 cout << "File " << query_file << " does not exist. Try again." << endl;
@@ -94,7 +108,7 @@ int main(int argc, char* argv[]){
                 continue;
             }
 
-            if(query.is_open()) // close if file was opened
+            if(query.is_open()) // close if file was opened in previous execution
                 query.close();
             
             query.open(query_file); // open file provided 
@@ -104,6 +118,7 @@ int main(int argc, char* argv[]){
 
         /* Get output file */
         while(1){ // until correct file is given
+
             /* Check if output file was provided by parameters */
             if(output_file.empty() || (flag != -1 && (!output.is_open()))){
                 cout << "Please provide path to output file, or .. to abort: ";
@@ -112,12 +127,13 @@ int main(int argc, char* argv[]){
                 fflush(stdin);
             }
 
-            if(!output_file.compare("..")){ // Abort
+             /* Abort */
+            if(!output_file.compare("..")){
                 cout << "No file was given. Abort." << endl;
                 return -2;
             }
 
-            if(output.is_open()) // close if file was opened
+            if(output.is_open()) // close if file was opened in previous execution
                 output.close();
 
             output.open(output_file); // open file provided 
@@ -125,6 +141,7 @@ int main(int argc, char* argv[]){
                 break;
         }
 
+        /* Print Program Parameteres */
         cout << "\n\nParameters Given:" << endl;
         cout << "................." << endl;
         cout << ">Input file: " << input_file << endl;
@@ -134,20 +151,17 @@ int main(int argc, char* argv[]){
         cout << ">Hash tables(L): " << L << endl;
         cout << "\n" << endl;
 
+        /* Start the LSH sequence */
         flag = executeLSH(input, query, output, k, L);
-        if(flag == 8)
+        if(flag == 8) // user wants to exit
             break;
     }
     cout << "Exiting..." << endl;
 }
 
 
-
-
 int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L){
-    dataset<int> my_data;   
-    
-
+    dataset<int> my_data; // holds all vectors
     string line;
 
     /* Scan first line for metric */
@@ -163,9 +177,11 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         my_data.add_vector(line);    
     }
 
+    /* Get number of vectors, to insert them in LSH */
     unsigned int data_counter = my_data.get_counter();
     cout << "**Dataset was created succesfully for " << data_counter << " vectors." << endl;
 
+    /* Create LSH level */
     LSH<int>* lsh = new LSH<int>(metrics, L, k, data_counter);
 
 
@@ -178,23 +194,23 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
     if(metrics == 1){
         output << "USING EUCLIDEAN DISTANCE" << endl;
         output << "========================\n\n" << endl;
-        cout << "**LSH was created succesfully using Euclidean Distance.\n\n" << endl;
+        cout << "**LSH was created succesfully using Euclidean Distance." << endl;
     
     }
     else if(metrics == 2){
         output << "USING COSINE SIMILARITY" << endl;
         output << "=======================\n\n" << endl;
-        cout << "**LSH was created succesfully using Cosine Similarity.\n\n" << endl;
+        cout << "**LSH was created succesfully using Cosine Similarity." << endl;
     }
 
-
-
     /* Move to query part */
+    cout << "**Starting Query sequence\n\n" << endl;
+    
     
     /* Scan first line for radius to be used on current query file */
     getline(query, line);
     int radius = get_radius(line);
-    if(radius < 0){ // no radius defined, query was scanned
+    if(radius < 0){ // no radius defined, query was scanned so it must be done
         radius = 0; // dont scan for neighbours in radius at all
         
         /* Find Neighbours */
@@ -208,42 +224,53 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         lsh->findANN(*q_vector, radius, min_dist, min_name, output);
         const clock_t end = clock();
 
-        double query_time = float(end - begin) /  CLOCKS_PER_SEC;
+        /* Compute time elapsed for ANN searching */
+        double lsh_time = float(end - begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << min_name << endl;
         output << "*DistanceLSH: " << min_dist << endl;
-        output << "*timeLSH: " << query_time << endl;
+        output << "*timeLSH: " << lsh_time << endl;
         output << "\n" << endl;
         delete q_vector;
     }
 
     while(getline(query, line)){
         /* Find Neighbours */
-        float min_dist = 0.0;
-        string min_name = "";
+        float lsh_min_dist = 0.0;
+        string lsh_min_name = "";
+        
         vector_item<int>* q_vector = new vector_item<int>(line);
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
-        const clock_t begin = clock();
-        lsh->findANN(*q_vector, radius, min_dist, min_name, output);
-        const clock_t end = clock();
+        const clock_t lsh_begin = clock();
+        lsh->findANN(*q_vector, radius, lsh_min_dist, lsh_min_name, output);
+        const clock_t lsh_end = clock();
         
-        double query_time = float(end - begin) /  CLOCKS_PER_SEC;
+        /* Compute time elapsed for ANN searching */
+        double lsh_time = float(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
         
-        output << "*Nearest Neighbour: " << min_name << endl;
-        output << "*DistanceLSH: " << min_dist << endl;
-        output << "*timeLSH: " << query_time << endl;
+        const clock_t real_begin = clock();
+        float real_dist = exchausting_s<int>(my_data, *q_vector, metrics);
+        const clock_t real_end = clock();
+
+        double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
+
+        output << "*Nearest Neighbour: " << lsh_min_name << endl;
+        output << "*DistanceLSH: " << lsh_min_dist << endl;
+        output << "*DistanceTrue: " << real_dist << endl;
+        output << "*timeLSH: " << lsh_time << endl;
+        output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
         delete q_vector;
     }
 
-    cout << "**LSH Algorithm Has Completed.\n" << endl;
+    cout << "**LSH Algorithm Has Completed. Check output file for results\n" << endl;
     
-
     // DESTROY EVERYTHING
     delete lsh;
 
+    /* Ask user if he wants to continue and we what files */
     int choice = new_execution(input, query, output);
     return choice;
 }

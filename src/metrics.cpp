@@ -181,7 +181,7 @@ vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
 
 
 template <class T>
-void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output){
+void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output, unordered_set<string>& checked_set){
 	string tab = "\t";
 	vector<int> hvalues; // values returned from hash functions
 	int f; // f(p) function <-> bucket index
@@ -203,13 +203,22 @@ void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 	if(radius == 0){
 		for(unsigned int i = 0; i < buck.size(); i++){
 			euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-			if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
-				float dist = eucl_distance(query, cur_vec->get_vec());
 
-				/* Check if nearest neighbour */
-				if(dist <= min_dist || min_dist == 0.0){
-					min_dist = dist;
-					NN_name.assign((cur_vec->get_vec()).get_id());
+			vector_item<T>& item = cur_vec->get_vec();
+
+			string& item_id = item.get_id(); // get item id
+
+			/* Check if item was not checked already */
+			if(!in_set(checked_set, item_id)){
+				checked_set.insert(item_id);
+				if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same g 				
+					float dist = eucl_distance(query, item);
+
+					/* Check if nearest neighbour */
+					if(dist <= min_dist || min_dist == 0.0){
+						min_dist = dist;
+						NN_name.assign(item_id);
+					}
 				}
 			}
 		}
@@ -220,43 +229,30 @@ void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 	else{
 		for(unsigned int i = 0; i < buck.size(); i++){
 			euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-			if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
-				float dist = eucl_distance(query, cur_vec->get_vec());
 
-				/* Print item in radius of query */
-				if(dist <= radius){
-					output << tab << cur_vec->get_vec().get_id() << endl;
-				}
-				/* Check if nearest neighbour */
-				if(dist <= min_dist || min_dist == 0.0){
-					min_dist = dist;
-					NN_name.assign((cur_vec->get_vec()).get_id());
+			vector_item<T>& item = cur_vec->get_vec();
+			string& item_id = item.get_id(); // get item id
+
+			/* Check if item was not checked already */
+			if(!in_set(checked_set, item_id)){
+				checked_set.insert(item_id);
+				if(comp_gs(cur_vec->get_g(), hvalues)){ // check if same 
+					float dist = eucl_distance(query, item);
+
+					/* Print item in radius of query */
+					if(dist <= radius){
+						output << tab << item_id << endl;
+					}
+					/* Check if nearest neighbour */
+					if(dist <= min_dist || min_dist == 0.0){
+						min_dist = dist;
+						NN_name.assign(item_id);
+					}
 				}
 			}
 		}
 	}
 
-}
-
-template <class T>
-float euclidean<T>::eucl_distance(vector_item<T>& vec1, vector_item<T>& vec2){
-	if(vec1.get_size() != vec2.get_size()){
-		cout << "Invalid dimensions" << endl;
-		exit(0);
-	}
-
-	float dist = 0.0;
-
-	array<T, D>& arr1 = vec1.get_points();
-	array<T, D>& arr2 = vec2.get_points();
-
-
-	for(unsigned int i = 0; i < arr1.size(); i++)
-		dist += pow(arr1[i] - arr2[i], 2);
-
-	dist = sqrt(dist);
-
-	return dist;
 }
 
 template <class T>
@@ -354,7 +350,7 @@ vector<vector_item<T>*>& csimilarity<T>::get_bucket(int index){
 
 
 template <class T>
-void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output){
+void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output, unordered_set<string>& checked_set){
 	int f = 0; // f(p) function <-> bucket index
 
 	/* First we must find the bucket that corresponds to query */
@@ -372,12 +368,18 @@ void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dis
 	if(radius == 0){
 		for(unsigned int i = 0; i < buck.size(); i++){
 			vector_item<T>* cur_vec = buck[i]; // get current vector
-			float dist = cs_distance(query, *cur_vec);
+			string& item_id = cur_vec->get_id(); // get item id
 
-			/* Check if nearest neighbour */
-			if(dist <= min_dist || min_dist == 0.0){
-				min_dist = dist;
-				NN_name.assign(cur_vec->get_id());
+			if(!in_set(checked_set, item_id)){
+				checked_set.insert(item_id);
+
+				float dist = cs_distance(query, *cur_vec);
+
+				/* Check if nearest neighbour */
+				if(dist <= min_dist || min_dist == 0.0){
+					min_dist = dist;
+					NN_name.assign(item_id);
+				}
 			}
 		}
 	}
@@ -387,47 +389,20 @@ void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dis
 	else{
 		for(unsigned int i = 0; i < buck.size(); i++){
 			vector_item<T>* cur_vec = buck[i]; // get current vector
-			float dist = cs_distance(query, *cur_vec);
+			string& item_id = cur_vec->get_id();
 
-			if(dist <= radius)
-				output << "\t" << cur_vec->get_id() << endl;
-			/* Check if nearest neighbour */
-			if(dist <= min_dist || min_dist == 0.0){
-				min_dist = dist;
-				NN_name.assign(cur_vec->get_id());
+			if(!in_set(checked_set, item_id)){
+				checked_set.insert(item_id);
+				float dist = cs_distance(query, *cur_vec);
+
+				if(dist <= radius)
+					output << "\t" << item_id << endl;
+				/* Check if nearest neighbour */
+				if(dist <= min_dist || min_dist == 0.0){
+					min_dist = dist;
+					NN_name.assign(item_id);
+				}
 			}
 		}
 	}
-}
-
-template <class T>
-float csimilarity<T>::cs_distance(vector_item<T>& vec1, vector_item<T>& vec2){
-	/* Compute (1 - ((vec1 * vec2) / (||vec1||*||vec2||))) */
- 	if(vec1.get_size() != vec2.get_size()){
-		cout << "Invalid dimensions" << endl;
-		exit(0);
-	}
-
-	float dist;
-	float euc_dist = 0.0;
-	float arr1_norm = 0.0;
-	float arr2_norm = 0.0;
-
-	array<T, D>& arr1 = vec1.get_points();
-	array<T, D>& arr2 = vec2.get_points();
-
-
-	for(unsigned int i = 0; i < arr1.size(); i++){
-		euc_dist += (arr1[i] * arr2[i]); // vec1 & vec2
-		arr1_norm += arr1[i] * arr1[i]; // ||vec1||
-		arr2_norm += arr2[i] * arr2[i]; // ||vec2||
-	}
-
-	arr1_norm = sqrt(arr1_norm);
-	arr2_norm = sqrt(arr2_norm);
-
-	dist = euc_dist / (arr1_norm * arr2_norm);
-	dist = 1 - dist;
-
-	return dist;
 }
