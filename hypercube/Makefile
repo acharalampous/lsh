@@ -1,12 +1,12 @@
 CC = g++
 CFLAGS = -g3 -Wall
-OBJECTS = main.o utils.o dataset.o metrics.o lsh.o
+OBJECTS = hc_main.o utils.o dataset.o metrics.o hypercube.o
 EXE = hypercube
 
 $(EXE): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $@
 
-main.o: main.cpp
+hc_main.o: hc_main.cpp
 	$(CC) $(CFLAGS) -c $^
 
 utils.o: utils.cpp
@@ -18,7 +18,7 @@ dataset.o: dataset.cpp
 metrics.o: metrics.cpp
 	$(CC) $(CFLAGS) -c $^
 
-lsh.o: lsh.cpp
+hypercube.o: hypercube.cpp
 	$(CC) $(CFLAGS) -c $^	
 
 .PHONY: clean

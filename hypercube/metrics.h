@@ -16,6 +16,9 @@
 #include "dataset.h"
 
 #define DEFAULT_K 4
+#define HC_DEFAULT_K 3
+#define HC_DEFAULT_M 10
+#define HC_DEFAULT_PROBES 2
 #define W 300 // window
 #define TS_DIVISOR 2 // for tablesize in euclidean
 
@@ -92,7 +95,7 @@ class euclidean{
         void add_vector(vector_item<T>*);
 
         /* Add vector directly to specific hash bucket */
-        void add_vector(vector_item<T>*, vector<int>*, int); 
+        void add_vector(vector_item<T>*, std::vector<int>*, int); 
 
         /* Returns a pointer to the bucket with the given index */
         std::vector<euclidean_vec<T>*>& get_bucket(int);
@@ -147,4 +150,10 @@ class csimilarity{
 
         /* Given a query vector, finds the nearest neighbours */ 
         void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&, std::unordered_set<std::string>&);
+
+        /* Returns the value of the hash function given for the provided vector */
+        int get_val_hf(std::array<int,D>&, int);
+
+        /* Accessors */
+        int get_k();
 };

@@ -7,19 +7,20 @@
 
 #include "utils.h"
 #include "dataset.h"
-#include "lsh.h"
+#include "hypercube.h"
 
 using namespace std;
 
 /* Responsible for the implementation of the LSH algorithm */
 /* Given the necessary files, k and L */
-int executeLSH(ifstream&, ifstream&, ofstream&, int, int);
+int executeHC(ifstream&, ifstream&, ofstream&, int, int, int);
 
 /* In main, all the necessary arguments and file names are extracted */
 int main(int argc, char* argv[]){
     int k = -1; // number of hash functions
-    int L = -1; // number of hash tables
-    
+    int probes = -1;
+    int M = -1;
+
     /* File Names */
     string input_file = "";  
     string query_file = "";
@@ -34,17 +35,13 @@ int main(int argc, char* argv[]){
 
 
     /* Check given parameters */
-    int result = get_parameters(argc, argv, input_file, query_file, output_file, k, L);
+    int result = HC_get_parameters(argc, argv, input_file, query_file, output_file, k, probes, M);
     if(result == -2){
         printValidParameters();
         return -1;
     }
 
-    /* If not k or L were provided, use the defaults */
-    if(k == -1)
-        k = DEFAULT_K;
-    if(L == -1)
-        L = DEFAULT_L;
+    
 
     /* While user decides to exit */
     while(flag != 8){
@@ -141,6 +138,14 @@ int main(int argc, char* argv[]){
                 break;
         }
 
+        /* If not k, probes or M were provided, use the defaults */
+        if(k == -1)
+            k = HC_DEFAULT_K;
+        if(probes == -1)
+            probes = HC_DEFAULT_PROBES;
+        if(M == -1)
+            M = 10;
+
         /* Print Program Parameteres */
         cout << "\n\nParameters Given:" << endl;
         cout << "................." << endl;
@@ -148,11 +153,12 @@ int main(int argc, char* argv[]){
         cout << ">Query File: " << query_file << endl;
         cout << ">Output File: " << output_file << endl;
         cout << ">Hash functions(k): " << k << endl;
-        cout << ">Hash tables(L): " << L << endl;
+        cout << ">Num Of Probes(probes): " << probes << endl;
+        cout << ">Num Of Points to be checked(M): " << M << endl;
         cout << "\n" << endl;
 
         /* Start the LSH sequence */
-        flag = executeLSH(input, query, output, k, L);
+        flag = executeHC(input, query, output, k, probes, M);
         if(flag == 8) // user wants to exit
             break;
     }
@@ -160,7 +166,7 @@ int main(int argc, char* argv[]){
 }
 
 
-int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L){
+int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int probes, int M){
     dataset<int> my_data; // holds all vectors
     string line;
 
@@ -182,25 +188,25 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
     cout << "**Dataset was created succesfully for " << data_counter << " vectors." << endl;
 
     /* Create LSH level */
-    LSH<int>* lsh = new LSH<int>(metrics, L, k, data_counter);
+    hypercube<int>* HC = new hypercube<int>(metrics, k, probes, M);
 
 
-    /* Insert vectors in lsh buckets */
+    /* Insert vectors in hypercube buckets */
     for(unsigned int i = 0; i < data_counter; i++){
         vector_item<int>* item = my_data.get_item(i); // get item from dataset
-        lsh->add_vector(item); // and place pointer of it in lsh
+        HC->add_vector(item); // and place pointer of it in lsh
     }
 
     if(metrics == 1){
         output << "USING EUCLIDEAN DISTANCE" << endl;
         output << "========================\n\n" << endl;
-        cout << "**LSH was created succesfully using Euclidean Distance." << endl;
+        cout << "**Hypercube was created succesfully using Euclidean Distance." << endl;
     
     }
     else if(metrics == 2){
         output << "USING COSINE SIMILARITY" << endl;
         output << "=======================\n\n" << endl;
-        cout << "**LSH was created succesfully using Cosine Similarity." << endl;
+        cout << "**Hypercube was created succesfully using Cosine Similarity." << endl;
     }
 
     /* Move to query part */
@@ -209,27 +215,36 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
     
     /* Scan first line for radius to be used on current query file */
     getline(query, line);
-    int radius = get_radius(line);
-    if(radius < 0){ // no radius defined, query was scanned so it must be done
+    double radius = get_radius(line);
+    if(radius < 0.0){ // no radius defined, query was scanned so it must be done
         radius = 0; // dont scan for neighbours in radius at all
         
         /* Find Neighbours */
         float min_dist = 0.0;
         string min_name = "";
+
         vector_item<int>* q_vector = new vector_item<int>(line);
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
         const clock_t begin = clock();
-        lsh->findANN(*q_vector, radius, min_dist, min_name, output);
+        HC->findANN(*q_vector, radius, min_dist, min_name, output);
         const clock_t end = clock();
 
         /* Compute time elapsed for ANN searching */
-        double lsh_time = float(end - begin) /  CLOCKS_PER_SEC;
+        double hc_time = float(end - begin) /  CLOCKS_PER_SEC;
+
+        const clock_t real_begin = clock();
+        float real_dist = exchausting_s<int>(my_data, *q_vector, metrics);
+        const clock_t real_end = clock();
+
+        double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << min_name << endl;
-        output << "*DistanceLSH: " << min_dist << endl;
-        output << "*timeLSH: " << lsh_time << endl;
+        output << "*DistanceHC: " << min_dist << endl;
+        output << "*DistanceReal: " << real_dist << endl;
+        output << "*timeHC: " << hc_time << endl;
+        output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
         delete q_vector;
     }
@@ -244,11 +259,11 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
         const clock_t lsh_begin = clock();
-        lsh->findANN(*q_vector, radius, lsh_min_dist, lsh_min_name, output);
+        HC->findANN(*q_vector, radius, lsh_min_dist, lsh_min_name, output);
         const clock_t lsh_end = clock();
         
         /* Compute time elapsed for ANN searching */
-        double lsh_time = float(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
+        double hc_time = float(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
         
         const clock_t real_begin = clock();
         float real_dist = exchausting_s<int>(my_data, *q_vector, metrics);
@@ -257,18 +272,18 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << lsh_min_name << endl;
-        output << "*DistanceLSH: " << lsh_min_dist << endl;
+        output << "*DistanceHC: " << lsh_min_dist << endl;
         output << "*DistanceTrue: " << real_dist << endl;
-        output << "*timeLSH: " << lsh_time << endl;
+        output << "*timeHC: " << hc_time << endl;
         output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
         delete q_vector;
     }
 
-    cout << "**LSH Algorithm Has Completed. Check output file for results\n" << endl;
+    cout << "**HyperCube Algorithm Has Completed. Check output file for results\n" << endl;
     
     // DESTROY EVERYTHING
-    delete lsh;
+    delete HC;
 
     /* Ask user if he wants to continue and we what files */
     int choice = new_execution(input, query, output);

@@ -8,9 +8,9 @@
 /********************************/
 #pragma once
 #include <array>
+#include <fstream>
 #include <vector>
 #include <string>
-#include <fstream>
 #include <unordered_set>
 
 #include "dataset.h"
@@ -21,9 +21,11 @@
 
 /* Extract parameters that were given during execution */ 
 int get_parameters(int, char**, std::string&, std::string&, std::string&, int&, int&);
+int HC_get_parameters(int, char**, std::string&, std::string&, std::string&, int&, int&, int&);
 
 /*  Print the valid form of given parameters */
 void printValidParameters();
+void HC_printValidParameters();
 
 /*  Given a string, it check char-char to see if integer.   */
 /*  Is yes, returns 1, else 0.                              */

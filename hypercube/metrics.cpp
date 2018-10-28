@@ -156,7 +156,7 @@ int euclidean<T>::get_bucket_num(vector<int>& hvalues){
 
 template <class T>
 int euclidean<T>::get_val_hf(array<int, D>& vec, int index){
-	return buckets[index].getValue(vec);
+	return hfs[index].getValue(vec);
 }
 
 template <class T>
@@ -180,8 +180,8 @@ void euclidean<T>::add_vector(vector_item<T>* new_vector){
 }
 
 template <class T>
-void add_vector(vector_item<T>* new_vec, vector<int>* hvalues, int index){
-	buckets[index].push_back(new euclidean_vec<T>(new_vec, hvalues))
+void euclidean<T>::add_vector(vector_item<T>* new_vec, vector<int>* hvalues, int index){
+	buckets[index].push_back(new euclidean_vec<T>(new_vec, hvalues));
 }
 
 template <class T>
@@ -420,4 +420,15 @@ void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dis
 			}
 		}
 	}
+}
+
+
+template <class T>
+int csimilarity<T>::get_val_hf(array<int, D>& vec, int index){
+	return hfs[index].getValue(vec);
+}
+
+template <class T>
+int csimilarity<T>::get_k(){
+	return this->k;
 }

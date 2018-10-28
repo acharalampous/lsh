@@ -23,7 +23,7 @@ class hypercube{
     private:
         euclidean<T>* eu_table; // euclidian table
         csimilarity<T>* cs_table; // cosine similarity table
-        std::unordered_map<int, int>* f; // maps each h value to 1 or 0
+        std::unordered_map<int, int>* fs; // maps each h value to 1 or 0
         int metric; // 1: euclidean distance, 2: cosine similarity
         int probes; // number of neighbour buckets to check
         int M; // number of total vectors to check
@@ -32,9 +32,9 @@ class hypercube{
         hypercube(int, int, int, int);
         ~hypercube();
 
-        /* Search if int is in map. If not, performs coin toss and the value is added   */
-        /* Finally its value is returned(1 or 0)                                        */
-        int check_map(int);
+        /* Search if int is in map[i]. If not, performs coin toss and the value is added    */
+        /* Finally its value is returned(1 or 0)                                            */
+        int check_map(int, int);
 
         /* Add a new vector in the hash table */
         void add_vector(vector_item<T>*);

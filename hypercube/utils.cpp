@@ -8,6 +8,7 @@
 /********************************/
 #include <iostream>
 #include <cmath>
+#include <string>
 
 #include "utils.h"
 #include "metrics.h"
@@ -99,6 +100,112 @@ int get_parameters(int argc, char** argv, string& input_file, string& queryset_f
     return 0;
 }
 
+
+int HC_get_parameters(int argc, char** argv, string& input_file, string& queryset_file, string& output_file, int& k, int& probes, int& M){
+    for (int i = 1; i < argc; i += 2){ // get all parameters
+        char par; // parameter given
+            
+        par = argv[i][1]; // get parameter
+        switch(par){
+            case 'd':{ // input file provided
+                if(!input_file.empty()){ // input file(dataset) is provided twice
+                    printf("Error in parameters! Input file [-d] is given more than once! Abort.\n");
+                    return -2;
+                }
+
+                input_file = argv[i + 1];
+                break;
+            } // end case -d
+            case 'q':{ // query file parameter
+                if(!queryset_file.empty()){ // port given twice
+                    printf("Error in parameters! Query file [-q] is given more than once! Abort.\n");
+                    return -2;
+                }
+                
+                queryset_file = argv[i + 1];
+                break;
+            } // end case -q
+            case 'o':{ // output file parameter
+                if(!output_file.empty()){ // port given twice
+                    printf("Error in parameters! Output file [-o] is given more than once! Abort.\n");
+                    return -2;
+                }
+
+                output_file = argv[i + 1];
+                break;
+            } // end case -o
+            case 'k':{ // number of hash functions parameter
+                if(k != -1){ // num of hash functions given twice
+                    printf("Error in parameters! Number of hash functions [-k] is given more than once! Abort.\n");
+                    return -2;
+                }
+
+                if(!isNumber(argv[i + 1])){ // num of hash functions is not a number
+                    printf("Error in parameters! Number of hash functions [-k] given is not a number. Abort\n");
+                    return -2;
+                }
+
+                k = atoi(argv[i + 1]);
+                if(k <= 0){ // not positive non-zero number of threads given
+                    printf("Error in parameters! Number of hash functions [-k] is not a positive non-zero number. Abort\n");
+                    return -2;
+                }
+
+                break;
+            } // end case -k
+            case 'p':{ // number of probes parameter
+                string par_str(argv[i]);
+                if(par_str.compare("-probes")){
+                    printf("Error in parameters. Unknown parameter given [%s]. Abort.\n", argv[i]);
+                    return -5;
+                }
+
+                if(probes != -1){ // num of probes given twice
+                    printf("Error in parameters! Number of probes [-probes] is given more than once! Abort.\n");
+                    return -2;
+                }
+
+                if(!isNumber(argv[i + 1])){ // num of probes is not a number
+                    printf("Error in parameters! Number of probes [-probes] given is not a number. Abort\n");
+                    return -2;
+                }
+
+                probes = atoi(argv[i + 1]);
+                if(probes <= 0){ // not positive non-zero number of probes given
+                    printf("Error in parameters! Number of probes [-probes] is not a positive non-zero number. Abort\n");
+                    return -2;
+                }
+
+                break;
+            } // end case -d
+            case 'M':{ // number of total points to be checked parameter
+                if(M != -1){ // M given twice
+                    printf("Error in parameters! Number of total points to be checked [-M] is given more than once! Abort.\n");
+                    return -2;
+                }
+
+                if(!isNumber(argv[i + 1])){ // num of probes is not a number
+                    printf("Error in parameters! Number of total points to be checked [-M] given is not a number. Abort\n");
+                    return -2;
+                }
+
+                M = atoi(argv[i + 1]);
+                if(M <= 0){ // not positive non-zero number of M given
+                    printf("Error in parameters! Number of total points to be checked [-M] is not a positive non-zero number. Abort\n");
+                    return -2;
+                }
+
+                break;
+            } // end case -M
+            default:{
+                printf("Error in parameters. Unknown parameter given [%s]. Abort.\n", argv[i]);
+                return -5;
+            }
+        } // end switch
+    } // end for
+    return 0;
+}
+
 void printValidParameters(){
     cout << "\n*Execute again providing (optionally) the following parameters:" << endl;
     cout << "\t-d inputFile" << endl;
@@ -111,6 +218,22 @@ void printValidParameters(){
     cout << "-outputFile: Path to the output file" << endl;
     cout << "-K: Number of hash functions for each hash table, [>=1]" << endl;
     cout << "-L: Number of hash tables, [>=1]" << endl;
+}
+
+void hd_printValidParameters(){
+    cout << "\n*Execute again providing (optionally) the following parameters:" << endl;
+    cout << "\t-d inputFile" << endl;
+    cout << "\t-q queryFile" << endl;
+    cout << "\t-o outputFile" << endl;
+    cout << "\t-k K" << endl;
+    cout << "\t-probes probes" << endl;
+    cout << "\t-M M" << endl;
+    cout << "-inputFile: Path to the dataset file" << endl;
+    cout << "-queryFule: Path to the query file" << endl;
+    cout << "-outputFile: Path to the output file" << endl;
+    cout << "-K: Number of hash functions for each hash table, [>=1]" << endl;
+    cout << "-probes: Number of neighbouring bucket to be checked, [>=1]" << endl;
+    cout << "-M: Number of total points to be checked for a query, [>=1]" << endl;
 }
 
 
@@ -167,6 +290,7 @@ int hamming_dist(int x, int y){
             dist++;
         x_or = x_or >> 1;
     }
+    return dist;
 }
 
 /* Compute inner product of two vectors */
@@ -397,7 +521,7 @@ float exchausting_s(dataset<T>& data_set, vector_item<T>& item, int metric){
             cur_dist = cs_distance(current_item, item);
 
             /* keep distance, if smaller than the minimum */
-            if(cur_dist <= min_dist || min_dist == -0.1)
+            if(cur_dist <= min_dist || min_dist == 0.0)
                 min_dist = cur_dist;
         }
     }
