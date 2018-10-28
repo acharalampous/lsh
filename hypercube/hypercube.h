@@ -1,0 +1,47 @@
+/*******************************/
+/* lsh.h */
+
+/* Name:    Andreas Charalampous
+ * A.M :    1115201500195
+ * e-mail:  sdi1500195@di.uoa.gr
+ */
+/********************************/
+#pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+
+#include "metrics.h"
+
+#define DEFAULT_L 5
+
+/*  Implementation of the class that uses the LSH algorithm with hypercube*/
+
+/* Class of hypercube that holds all the metrics */
+template <class T>
+class hypercube{
+    private:
+        euclidean<T>* eu_table; // euclidian table
+        csimilarity<T>* cs_table; // cosine similarity table
+        std::unordered_map<int, int>* f; // maps each h value to 1 or 0
+        int metric; // 1: euclidean distance, 2: cosine similarity
+        int probes; // number of neighbour buckets to check
+        int M; // number of total vectors to check
+    public:
+        /* Given number of tables, metrics and number of input, create LSH structure */
+        hypercube(int, int, int, int);
+        ~hypercube();
+
+        /* Search if int is in map. If not, performs coin toss and the value is added   */
+        /* Finally its value is returned(1 or 0)                                        */
+        int check_map(int);
+
+        /* Add a new vector in the hash table */
+        void add_vector(vector_item<T>*);
+
+        /* Finds ANN of given vector, searching in hash table */
+        void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
+
+        /* Finds and returns all neighbour bucket numbers found in probes */
+        std::vector<int>* find_neighbours(int, int);
+};

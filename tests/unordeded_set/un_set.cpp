@@ -1,47 +1,27 @@
 #include <iostream>
-#include <unordered_set>
+#include <unordered_map>
 #include <string>
 
 using namespace std;
 
 int main(void){
-    unordered_set<string> my_set;
-    unordered_set<string>::iterator it;
+    unordered_map<string, int> my_set;
+    unordered_map<string, int>::iterator it;
 
-    my_set.insert("Andreas");
-    my_set.insert("Kwstas");
-    my_set.insert("Michalis");
-    my_set.insert("Limassol");
-    my_set.insert("Manchester");
-    my_set.insert("Athens");
+    my_set["Athens"] = 0;
+    my_set["Oslo"] = 1;
+    my_set["Limassol"] = 1;
+    my_set["Pafos"] = 0;
+    my_set["Manchester"] = 1;
+    my_set["Tokio"] = 0;
+    my_set["Patra"] = 1;
 
-    string city = "Athens";
+    string city = "Oslo";
     it = my_set.find(city);
     if(it == my_set.end())
         cout << city << " Was Not found" << endl;
-    else
-        cout << *it << " Was Found" << endl;
-
-    city.assign("Pafos");
-    it = my_set.find(city);
-    if(it == my_set.end())
-        cout << city << " Was Not found" << endl;
-    else
-        cout << *it << " Was Found" << endl;
-
-
-    city = "Athens";
-    my_set.erase(city);  
-    it = my_set.find(city);
-    if(it == my_set.end())
-        cout << city << " Was Not found" << endl;
-    else
-        cout << *it << " Was Found" << endl;
-
-
-    for(it = my_set.begin(); it != my_set.end(); it++){
-        cout << *it << endl;
+    else{
+        int val = it->second;
+        cout << it->first << " Was Found. Value = " << val << endl;
     }
-    cout << "Size = " << my_set.size() << endl;
-
 }
