@@ -1,5 +1,5 @@
 /*******************************/
-/* lsh.h */
+/* hypercube.h */
 
 /* Name:    Andreas Charalampous
  * A.M :    1115201500195
@@ -21,12 +21,12 @@ class hypercube{
     private:
         euclidean<T>* eu_table; // euclidian table
         csimilarity<T>* cs_table; // cosine similarity table
-        std::unordered_map<int, int>* fs; // maps each h value to 1 or 0
+        std::unordered_map<int, int>* fs; // maps each hi value to 1 or 0
         int metric; // 1: euclidean distance, 2: cosine similarity
         int probes; // number of neighbour buckets to check
         int M; // number of total vectors to check
     public:
-        /* Given number of tables, metrics and number of input, create LSH structure */
+        /* Given number of metrics, number of input, probes and M create hypercube structure */
         hypercube(int, int, int, int);
         ~hypercube();
 
@@ -43,5 +43,6 @@ class hypercube{
         /* Finds and returns all neighbour bucket numbers found in probes */
         std::vector<int>* find_neighbours(int, int);
 
+        /* Find total size of structure in bytes */
         long int get_total_size();
 };

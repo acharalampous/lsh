@@ -187,9 +187,8 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
     unsigned int data_counter = my_data.get_counter();
     cout << "**Dataset was created succesfully for " << data_counter << " vectors.\n" << endl;
 
-    /* Create LSH level */
+    /* Create Hypercube level */
     hypercube<int>* HC = new hypercube<int>(metrics, k, probes, M);
-
 
     /* Insert vectors in hypercube buckets */
     for(unsigned int i = 0; i < data_counter; i++){
@@ -224,7 +223,7 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
         radius = 0; // dont scan for neighbours in radius at all
         
         /* Find Neighbours */
-        float hc_min_dist = 0.0;
+        float hc_min_dist = -1.0;
         string min_name = "";
         vector_item<int>* q_vector = new vector_item<int>(line);
         total_queries++;
@@ -264,7 +263,7 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
 
     while(getline(query, line)){
         /* Find Neighbours */
-        float hc_min_dist = 0.0;
+        float hc_min_dist = -1.0;
         string min_name = "";
         vector_item<int>* q_vector = new vector_item<int>(line);
         total_queries++;
@@ -298,7 +297,6 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
 
         avg_hc_time += hc_time;
         avg_real_time += real_time;
-
 
         delete q_vector;
     }

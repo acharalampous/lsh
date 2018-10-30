@@ -1,5 +1,5 @@
 /*******************************/
-/* lsh.cpp */
+/* hypercube.cpp */
 
 /* Name:    Andreas Charalampous
  * A.M :    1115201500195
@@ -22,12 +22,12 @@ using namespace std;
 template class hypercube<int>;
 
 /*  Implementation of all functions of the class
- *  that is used for LSH. Definitions found in
- *  lsh.h.
+ *  that is used for hypercube. Definitions found in
+ *  hypercube.h.
  */
 
-/* L: num of tables for each metric, k: num of hash functions, */
-/* n: dataset size */ 
+/* k: num of hash functions, probes: num of neighbour bucket to be checked */
+/* M: num of items to be checked */ 
 template <class T>
 hypercube<T>::hypercube(int metric, int k, int probes, int M){
     eu_table = NULL;
@@ -110,13 +110,14 @@ void hypercube<T>::add_vector(vector_item<T>* new_vector){
 }
 
 template <class T>
-void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& ANN_name, ofstream& output){
-    char tab = '\t';    
-    if(metric == 1){
+void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& ANN_name, ofstream& output){   
+    
+    if(metric == 1){ // euclidean will be used
         int k = eu_table->get_k(); // get number of hash functions
 
         array<int, D>& vec = query.get_points();
         
+        /* Find bucket num of query */
         int bucket_num = 0;
         for(int i = 0; i < k; i++){
             /* Get hash function value */
@@ -129,18 +130,21 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
            bucket_num += fi * pow(2, k - i - 1);
         }
 
+        /* Find number of neighbours that need to be checked, according to probes */
         vector<int>* neighbours = find_neighbours(bucket_num, probes);
 
         int vector_sz = this->eu_table->get_k() + 1; // size of vector
         
-        int remaining_probes = probes;
-        int remaining_items = M;
-        int flag = 0;
+        int remaining_probes = probes; // number of neighbours left to check
+        int remaining_items = M; // number of items left to check
+        int flag = 0; // if flag = 1, reached probes of M
 
         /* Check neighbours found */
         for(int i = 0; i < vector_sz; i++){
             if(flag == 1)
                 break;
+
+            /* Get neighbours */
             for(unsigned int j = 0; j < neighbours[i].size(); j++){
                 
                 remaining_probes--; // about to check another neighbour
@@ -157,22 +161,20 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
                 if(radius == 0){
                     for(unsigned int i = 0; i < buck.size(); i++){
                         remaining_items--; // about to check another vector
-                        if(remaining_items < 0){ // no more neighbours to check
+                        if(remaining_items < 0){ // no more items to check
                             flag = 1;    
                             break;
                         } 
 
                         euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-
                         vector_item<T>& item = cur_vec->get_vec();
 
                         string& item_id = item.get_id(); // get item id
 
-                        /* Check if item was not checked already */
                         float dist = eucl_distance(query, item);
 
                         /* Check if nearest neighbour */
-                        if(dist <= min_dist || min_dist == 0.0){
+                        if(dist <= min_dist || min_dist == -1.0){
                             min_dist = dist;
                             ANN_name.assign(item_id);
                         }
@@ -184,13 +186,12 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
                 else{
                     for(unsigned int i = 0; i < buck.size(); i++){
                         remaining_items--; // about to check another vector
-                        if(remaining_items < 0){ // no more neighbours to check
+                        if(remaining_items < 0){ // no more items to check
                             flag = 1;    
                             break;
                         } 
                         
                         euclidean_vec<T>* cur_vec = buck[i]; // get current vector
-
                         vector_item<T>& item = cur_vec->get_vec();
                         string& item_id = item.get_id(); // get item id
 
@@ -198,11 +199,11 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 
                         /* Print item in radius of query */
                         if(dist <= radius){
-                            output << tab << item_id << endl;
+                            output << "\t" << item_id << endl;
                         }
                         
                         /* Check if nearest neighbour */
-                        if(dist <= min_dist || min_dist == 0.0){
+                        if(dist <= min_dist || min_dist == -1.0){
                             min_dist = dist;
                             ANN_name.assign(item_id);
                         }
@@ -219,7 +220,6 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 	
         /* Get vector points */
         array<int, D>* vec_points = &(query.get_points());
-
 
         /* Get all hash functions values */
         for(int i = 0; i < k; i++){
@@ -239,6 +239,7 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
         for(int i = 0; i < vector_sz; i++){
             if(flag == 1)
                 break;
+
             for(unsigned int j = 0; j < neighbours[i].size(); j++){
                 
                 remaining_probes--; // about to check another neighbour
@@ -247,7 +248,7 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
                     break;
                 } 
 
-                /* Get bucket from euclidean table */
+                /* Get bucket from cosine table */
                 int f = neighbours[i][j];
                 vector<vector_item<T>*>& buck = cs_table->get_bucket(f);
 
@@ -261,14 +262,12 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
                         } 
 
                         vector_item<T>* item = buck[i]; // get current vector
-
                         string& item_id = item->get_id(); // get item id
 
-                        /* Check if item was not checked already */
                         float dist = cs_distance(query, *item);
 
                         /* Check if nearest neighbour */
-                        if(dist <= min_dist || min_dist == 0.0){
+                        if(dist <= min_dist || min_dist == -1.0){
                             min_dist = dist;
                             ANN_name.assign(item_id);
                         }
@@ -280,24 +279,23 @@ void hypercube<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
                 else{
                     for(unsigned int i = 0; i < buck.size(); i++){
                         remaining_items--; // about to check another vector
-                        if(remaining_items < 0){ // no more neighbours to check
+                        if(remaining_items < 0){ // no more items to check
                             flag = 1;    
                             break;
                         } 
                         
                         vector_item<T>* item = buck[i]; // get current vector
-
                         string& item_id = item->get_id(); // get item id
 
                         float dist = cs_distance(query, *item);
 
                         /* Print item in radius of query */
                         if(dist <= radius){
-                            output << tab << item_id << endl;
+                            output << "\t" << item_id << endl;
                         }
                         
                         /* Check if nearest neighbour */
-                        if(dist <= min_dist || min_dist == 0.0){
+                        if(dist <= min_dist || min_dist == -1.0){
                             min_dist = dist;
                             ANN_name.assign(item_id);
                         }
@@ -347,7 +345,7 @@ vector<int>* hypercube<T>::find_neighbours(int num, int probes){
     }
 
     remaining_n = probes - 1;
-    int max_num = pow(2, num_of_bits); // maximum possible number for number of bits
+    int max_num = pow(2, num_of_bits); // maximum possible number that can be represented by num_of_bits
     for(int i = 0; i < max_num && remaining_n > 0; i++ ){
         if(i == num) // if same number, pass(already placed)
             continue;
@@ -371,19 +369,25 @@ long int hypercube<T>::get_total_size(){
     long int total_size = 0;
     int num_of_maps = 0;
 
+    /* Get size of struct */
     total_size += sizeof(*this);
+
+    /* If exists, get size of eu_table */
     if(eu_table != NULL){
         total_size += eu_table->get_size();
         num_of_maps = eu_table->get_k();
     }
         
+    /* If exists, get size of cs_table */
     if(cs_table != NULL){
         total_size += cs_table->get_size();
         num_of_maps = cs_table->get_k();
     }
 
+    /* Get size of maps */
     for(int i = 0; i < num_of_maps; i++){
-        total_size += sizeof(fs[i]) + fs[i].size() + (2 * sizeof(int));
+        /* get size of each map + (2*int) * records */
+        total_size += sizeof(fs[i]) + (fs[i].size() * (2 * sizeof(int)));
     }
     
     return total_size;
