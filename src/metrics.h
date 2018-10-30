@@ -15,12 +15,12 @@
 
 #include "dataset.h"
 
-#define DEFAULT_K 4
-#define HC_DEFAULT_K 3
-#define HC_DEFAULT_M 10
-#define HC_DEFAULT_PROBES 2
-#define W 300 // window
-#define TS_DIVISOR 2 // for tablesize in euclidean
+#define DEFAULT_K 4 // default number of hash functions(LSH)
+#define HC_DEFAULT_K 3 // default number of hash functions(HC)
+#define HC_DEFAULT_M 10 // default points to be checked(HC)
+#define HC_DEFAULT_PROBES 2 // default neighbours to check (HC)
+#define W 600 // window for euclidean
+#define TS_DIVISOR 4 // for tablesize in euclidean
 
 /* For random vector r, in euclidean */
 #define MIN_Ri -40 
@@ -44,15 +44,17 @@ class euclidean_vec{
         vector_item<T>* vec; // pointer to vector in dataset
         std::vector<int>* g; // holds all hash function values
     public:
-        /* Constructor */
+        /* Con-De structor */
         euclidean_vec(vector_item<T>*, std::vector<int>*);
         ~euclidean_vec();
-        
-        void print();
 
         /* Acessors */
-        vector_item<T>& get_vec();
-        std::vector<int>& get_g();
+        vector_item<T>& get_vec(); // get vector item
+        std::vector<int>& get_g(); // get hvalues
+        long int get_size(); // get sizeof euclidean vec in bytes
+
+        /* Debugging */
+        void print();
 };
 
 
@@ -66,7 +68,10 @@ class euclideanHF{
         euclideanHF();
         
         int getValue(std::array<int,D>&); // get hash value
-        void print(); // print hash function info
+        long int get_size(); // get sizeof euclidean hf in bytes
+
+        /* Debugging */
+        void print();
 };
 
 
@@ -81,14 +86,14 @@ class euclidean{
         std::vector<euclidean_vec<T>*>* buckets; // all buckets
 		std::vector<int> r; // random vector
 	public:
-        /* Constructor */
+        /* Con-De structor */
 		euclidean(int, int);
         ~euclidean();
         
-        /* Returns the result of hash functions for a vector */
+        /* Returns the result of hash functions for a vector(bucket of item) */
         int get_bucket_num(std::vector<int>&);
 
-        /* Returns the value of the hash function given for the provided vector */
+        /* Returns the value of the given hash function for the provided vector */
         int get_val_hf(std::array<int,D>&, int);
 
         /* Add new vector to hash table, computing in what bucket to place */ 
@@ -100,7 +105,7 @@ class euclidean{
         /* Returns a pointer to the bucket with the given index */
         std::vector<euclidean_vec<T>*>& get_bucket(int);
 
-        /* Given a query vector, finds the nearest neighbours */ 
+        /* Given a query vector, finds the nearest neighbours(for LSH) */ 
         void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&, std::unordered_set<std::string>&);
 
         /* Returns 1 if gs given are the same, else 0 */
@@ -108,6 +113,7 @@ class euclidean{
 
         /* Accessors */
         int get_k();
+        long int get_size();
 };
 
 
@@ -127,7 +133,10 @@ class csimilarityHF{
         csimilarityHF();
         
         int getValue(std::array<int,D>&); // get hash value
-        void print(); // print hash function info
+        long int get_size(); // get size of struct in bytes
+
+        /* Debugging */
+        void print();
 };
 
 /** csimilarity **/
@@ -156,4 +165,6 @@ class csimilarity{
 
         /* Accessors */
         int get_k();
+
+        long int get_size();
 };

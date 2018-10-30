@@ -164,7 +164,7 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
     dataset<int> my_data; // holds all vectors
     string line;
 
-    /* Scan first line for metric */
+    /* Scan first line from input file for metric */
     getline(input, line);
     int metrics = get_metrics(line);
     if(metrics == 0){ // no metric defined, vector was scanned
@@ -179,58 +179,83 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
 
     /* Get number of vectors, to insert them in LSH */
     unsigned int data_counter = my_data.get_counter();
-    cout << "**Dataset was created succesfully for " << data_counter << " vectors." << endl;
+    cout << "**Dataset was created succesfully for " << data_counter << " vectors.\n" << endl;
 
     /* Create LSH level */
     LSH<int>* lsh = new LSH<int>(metrics, L, k, data_counter);
 
 
-    /* Insert vectors in lsh buckets */
+    /* Insert vectors from dataset in lsh buckets */
     for(unsigned int i = 0; i < data_counter; i++){
         vector_item<int>* item = my_data.get_item(i); // get item from dataset
         lsh->add_vector(item); // and place pointer of it in lsh
     }
 
+
     if(metrics == 1){
-        output << "USING EUCLIDEAN DISTANCE" << endl;
-        output << "========================\n\n" << endl;
-        cout << "**LSH was created succesfully using Euclidean Distance." << endl;
+        output << "LSH USING EUCLIDEAN DISTANCE" << endl;
+        output << "============================\n\n" << endl;
+        cout << "**LSH was created succesfully using Euclidean Distance.\n" << endl;
     
     }
     else if(metrics == 2){
-        output << "USING COSINE SIMILARITY" << endl;
-        output << "=======================\n\n" << endl;
-        cout << "**LSH was created succesfully using Cosine Similarity." << endl;
+        output << "LSH USING COSINE SIMILARITY" << endl;
+        output << "===========================\n\n" << endl;
+        cout << "**LSH was created succesfully using Cosine Similarity.\n" << endl;
     }
 
     /* Move to query part */
     cout << "**Starting Query sequence\n\n" << endl;
     
-    
+    double max_approx = 0.0; // maximum approximation (LSH_time / Real_time)
+    long double avg_lsh_time = 0.0; // avg lsh ANN time
+    long double avg_real_time = 0.0; // avg exchausting search time
+    int total_queries = 0; // number of queries-vectors checked
+
+
     /* Scan first line for radius to be used on current query file */
     getline(query, line);
     int radius = get_radius(line);
-    if(radius < 0){ // no radius defined, query was scanned so it must be done
+    if(radius < 0){ // no radius defined, query was scanned so it must be checked
         radius = 0; // dont scan for neighbours in radius at all
         
         /* Find Neighbours */
-        float min_dist = 0.0;
-        string min_name = "";
-        vector_item<int>* q_vector = new vector_item<int>(line);
+        float lsh_min_dist = 0.0; // will hold the minimum distance
+        string min_name = ""; // will hold the nearest neighbour's id
+        vector_item<int>* q_vector = new vector_item<int>(line); // create a new vector_item with the given points
+        total_queries++;
+
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
-        const clock_t begin = clock();
-        lsh->findANN(*q_vector, radius, min_dist, min_name, output);
-        const clock_t end = clock();
+        const clock_t lsh_begin = clock();
+        lsh->findANN(*q_vector, radius, lsh_min_dist, min_name, output);
+        const clock_t lsh_end = clock();
 
-        /* Compute time elapsed for ANN searching */
-        double lsh_time = float(end - begin) /  CLOCKS_PER_SEC;
+        /* Compute time elapsed for LSH ANN searching */
+        double lsh_time = double(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
+
+        const clock_t real_begin = clock();
+        float real_dist = exchausting_s<int>(my_data, *q_vector, metrics);
+        const clock_t real_end = clock();
+
+        /* Compute time elapsed for excausting search */
+        double real_time = double(real_end - real_begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << min_name << endl;
-        output << "*DistanceLSH: " << min_dist << endl;
+        output << "*DistanceLSH: " << lsh_min_dist << endl;
+        output << "*DistanceTrue: " << real_dist << endl;
         output << "*timeLSH: " << lsh_time << endl;
+        output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
+
+        double approx = lsh_min_dist / real_dist;
+        if(approx >= max_approx) // if current approximation larger that max, re set max
+            max_approx = approx;
+        
+        avg_lsh_time += lsh_time; // add to total lsh_time
+        avg_real_time += real_time; // add to total real_time
+
         delete q_vector;
     }
 
@@ -240,6 +265,8 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         string lsh_min_name = "";
         
         vector_item<int>* q_vector = new vector_item<int>(line);
+        total_queries++;
+
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
@@ -248,13 +275,13 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         const clock_t lsh_end = clock();
         
         /* Compute time elapsed for ANN searching */
-        double lsh_time = float(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
+        double lsh_time = double(lsh_end - lsh_begin) /  CLOCKS_PER_SEC;
         
         const clock_t real_begin = clock();
         float real_dist = exchausting_s<int>(my_data, *q_vector, metrics);
         const clock_t real_end = clock();
 
-        double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
+        double real_time = double(real_end - real_begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << lsh_min_name << endl;
         output << "*DistanceLSH: " << lsh_min_dist << endl;
@@ -262,8 +289,26 @@ int executeLSH(ifstream& input, ifstream& query, ofstream& output, int k, int L)
         output << "*timeLSH: " << lsh_time << endl;
         output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
+
+        double approx = lsh_min_dist / real_dist;
+        if(approx >= max_approx)
+            max_approx = approx;
+
+        avg_lsh_time += lsh_time;
+        avg_real_time += real_time;
+
         delete q_vector;
     }
+
+    avg_lsh_time = avg_lsh_time / total_queries;
+    avg_real_time = avg_real_time / total_queries;
+
+
+    cout << "**Query sequence for " << total_queries << " queries finished succesfully." << endl;
+    cout << "\tMax Approximation: " << max_approx << endl;
+    cout << "\tAverage LSH ANN time: " << avg_lsh_time << endl;
+    cout << "\tAverage Excausting search time: " << avg_real_time << endl;
+    cout << "\tLSH total size: " << lsh->get_total_size() << " bytes \n" << endl;
 
     cout << "**LSH Algorithm Has Completed. Check output file for results\n" << endl;
     

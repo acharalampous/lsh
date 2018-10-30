@@ -73,3 +73,19 @@ void LSH<T>::findANN(vector_item<T>& query, float radius, float& min_dist, strin
         cs_tables[i]->findANN(query, radius, min_dist, ANN_name, output, checked_set);
     }
 }
+
+template <class T>
+long int LSH<T>::get_total_size(){
+    long int total_size = 0;
+
+    total_size += sizeof(*this);
+    for(unsigned int i = 0; i < eu_tables.size(); i++){
+        total_size += eu_tables[i]->get_size();
+    }
+
+    for(unsigned int i = 0; i < cs_tables.size(); i++){
+        total_size += cs_tables[i]->get_size();
+    }
+
+    return total_size;
+}

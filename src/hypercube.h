@@ -42,4 +42,6 @@ class hypercube{
 
         /* Finds and returns all neighbour bucket numbers found in probes */
         std::vector<int>* find_neighbours(int, int);
+
+        long int get_total_size();
 };

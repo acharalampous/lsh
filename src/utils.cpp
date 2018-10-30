@@ -15,9 +15,9 @@
 
 using namespace std;
 
-template float exchausting_s(dataset<int>&, vector_item<int>&, int);
 template float eucl_distance(vector_item<int>&, vector_item<int>&);
 template float cs_distance(vector_item<int>&, vector_item<int>&);
+template float exchausting_s(dataset<int>&, vector_item<int>&, int);
 
 
 /*  All functions implementions that are defined in utils.h */
@@ -223,7 +223,7 @@ void printValidParameters(){
     cout << "-L: Number of hash tables, [>=1]" << endl;
 }
 
-void hd_printValidParameters(){
+void HC_printValidParameters(){
     cout << "\n*Execute again providing (optionally) the following parameters:" << endl;
     cout << "\t-d inputFile" << endl;
     cout << "\t-q queryFile" << endl;
@@ -285,9 +285,9 @@ int get_factorial(int num){
 }
 
 int hamming_dist(int x, int y){
-    int x_or = x ^ y; // find different bits
+    int x_or = x ^ y; // keep different bits, they will be represented as 1
 
-    int dist = 0; // hamming_dist
+    int dist = 0; // hamming_distance
     while(x_or > 0){ // check all bits
         if((x_or | 1) == x_or) // if true, means the leftmost bit is 1, hence different
             dist++;
@@ -318,7 +318,7 @@ long long int h_concantenate(vector<int>& hs){
     return stoll(res_str);
 }
 
-/* Computes and returns the modulo of the ginen values a mod b */
+/* Computes and returns the modulo of the given values a mod b */
 long long int my_mod(int a, long int b){
 	long long int res = a - ((floor( (long double)a / (long double)b) ) * b); 
     return res;
@@ -345,6 +345,7 @@ double get_radius(std::string& radius){
     int pos1 = radius.find('<');
     int pos2 = radius.find('>');
 
+    /* Keep the part enclosed in <> */
     string temp = radius.substr(pos1 + 1, pos2 - pos1 - 1);
     
     double result = 0.0;
@@ -509,11 +510,11 @@ float exchausting_s(dataset<T>& data_set, vector_item<T>& item, int metric){
 
         /* Check all items in dataset */
         for(int i = 0; i < data_sz; i++){
-            vector_item<T>& current_item = *(data_set.get_item(i));
-            cur_dist = eucl_distance(current_item, item);
+            vector_item<T>* current_item = data_set.get_item(i);
+            cur_dist = eucl_distance(*current_item, item);
 
             /* keep distance, if smaller than the minimum */
-            if(cur_dist <= min_dist || min_dist == -1.0)
+            if(cur_dist <= min_dist || i == 0)
                 min_dist = cur_dist;
         }
     }
@@ -521,11 +522,11 @@ float exchausting_s(dataset<T>& data_set, vector_item<T>& item, int metric){
 
         /* Check all items in dataset */
         for(int i = 0; i < data_sz; i++){
-            vector_item<T>& current_item = *(data_set.get_item(i));
-            cur_dist = cs_distance(current_item, item);
+            vector_item<T>* current_item = data_set.get_item(i);
+            cur_dist = cs_distance(*current_item, item);
 
             /* keep distance, if smaller than the minimum */
-            if(cur_dist <= min_dist || min_dist == -1.0)
+            if(cur_dist <= min_dist || i == 0)
                 min_dist = cur_dist;
         }
     }

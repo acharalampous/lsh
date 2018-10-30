@@ -25,14 +25,14 @@ class vector_item{
     public:
         /* Given the points of vector and id, create a new vector_item */
         vector_item(std::string&);
-        
-        /* Print vector stats */
-        void print();
 
         /* Accessors */
         std::string& get_id(); // returns id as string
         std::array<T, D>& get_points(); // returns an array with all the points of vector
         int get_size(); // returns size of vector
+                
+        /* Print vector stats */
+        void print();
 };
 
 /* Container that holds records(vector_item) */
@@ -42,6 +42,7 @@ class dataset{
         int counter; // num of vectors
         std::vector<vector_item<T>*> vectors; // all vectors
     public:
+        /* Con-De Structor */
         dataset(): counter(0){};
         ~dataset();
         
@@ -50,9 +51,7 @@ class dataset{
         
         /* Accessors */
         int get_counter();
-
-        /* Returns pointer to the item stored int the index given */
-        vector_item<T>* get_item(int); 
+        vector_item<T>* get_item(int); // Returns pointer to the item stored int the index given 
         
         /* Debugging */
         void print();

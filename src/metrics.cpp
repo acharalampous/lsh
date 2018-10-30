@@ -46,6 +46,29 @@ euclidean_vec<T>::~euclidean_vec(){
 }
 
 template <class T>
+vector_item<T>& euclidean_vec<T>::get_vec(){
+	return *(this->vec);
+}
+
+template <class T>
+vector<int>& euclidean_vec<T>::get_g(){
+	return *(this->g);
+}
+
+template <class T>
+long int euclidean_vec<T>::get_size(){
+	long int total_size = 0;
+
+	/* Get struct size */
+	total_size += sizeof(*this);
+
+	/* Get g(p) size */
+	total_size += (sizeof(int) * g->size());
+
+	return total_size;
+}
+
+template <class T>
 void euclidean_vec<T>::print(){
 	cout << "I am item in euclidean vec with g: " << endl;
 	for(unsigned int i = 0; i < this->g->size(); i++)
@@ -55,15 +78,6 @@ void euclidean_vec<T>::print(){
 	this->vec->print();
 }
 
-template <class T>
-vector_item<T>& euclidean_vec<T>::get_vec(){
-	return *(this->vec);
-}
-
-template <class T>
-vector<int>& euclidean_vec<T>::get_g(){
-	return *(this->g);
-}
 
 
 /** euclideanHF **/
@@ -87,9 +101,16 @@ int euclideanHF::getValue(array<int, D>& vec){
 	/* Calculation of: floor([ ( p * v ) + t) ] / w) */
 
 	float product = vector_product(v, vec);
-	float result = (product + t) / W;
+	float result = (product + t) / (float)W;
 
 	return (int)result;
+}
+
+long int euclideanHF::get_size(){
+	long int total_size = 0;
+	total_size += sizeof(*this);
+
+	return total_size;
 }
 
 void euclideanHF::print(){
@@ -99,6 +120,7 @@ void euclideanHF::print(){
 
 	cout << "T: " << t << endl;
 }
+
 
 
 /** Euclidean metric **/
@@ -174,8 +196,9 @@ void euclidean<T>::add_vector(vector_item<T>* new_vector){
 	/* Compute f(p) */
 	f = get_bucket_num(*hvalues);
 
-	if(f < 0)
-		cout << "OVERFLOW" << endl;
+	// if(f < 0)
+		// cout << "OVERFLOW" << endl;
+
 	buckets[f].push_back(new euclidean_vec<T>(new_vector, hvalues));
 }
 
@@ -186,13 +209,12 @@ void euclidean<T>::add_vector(vector_item<T>* new_vec, vector<int>* hvalues, int
 
 template <class T>
 vector<euclidean_vec<T>*>& euclidean<T>::get_bucket(int index){
-	return this->buckets[index];
+	return buckets[index];
 }
 
 
 template <class T>
 void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist, string& NN_name, ofstream& output, unordered_set<string>& checked_set){
-	string tab = "\t";
 	vector<int> hvalues; // values returned from hash functions
 	int f; // f(p) function <-> bucket index
 
@@ -251,8 +273,9 @@ void euclidean<T>::findANN(vector_item<T>& query, float radius, float& min_dist,
 
 					/* Print item in radius of query */
 					if(dist <= radius){
-						output << tab << item_id << endl;
+						output << "\t" << item_id << endl;
 					}
+
 					/* Check if nearest neighbour */
 					if(dist <= min_dist || min_dist == 0.0){
 						min_dist = dist;
@@ -286,6 +309,32 @@ int euclidean<T>::get_k(){
 	return this->k;
 }
 
+template <class T>
+long int euclidean<T>::get_size(){
+	long int total_size = 0;
+	
+	/* Get struct size */
+	total_size += sizeof(*this);
+
+	/* Get hash functions structs size */
+	for(int i = 0; i < k; i++){
+		total_size += hfs[i].get_size();
+	}
+
+	/* Calculate buckets size */
+	for(int i = 0; i < tableSize; i++){
+		total_size += sizeof(buckets[i]); 
+		for(unsigned int j = 0; j < buckets[i].size(); j++){
+			total_size += buckets[i][j]->get_size();
+		}
+	}
+
+	/* Get r(random vector) size */
+	total_size += sizeof(int) * r.size();
+
+	return total_size;
+}
+
 
 
 
@@ -316,10 +365,18 @@ int csimilarityHF::getValue(array<int, D>& vec){
 
 }
 
+long int csimilarityHF::get_size(){
+	long int total_size = 0;
+	total_size += sizeof(*this);
+
+	return total_size;
+}
+
 void csimilarityHF::print(){
 	for (unsigned int i = 0; i < D; i++)
 		cout << i << ". " << r[i] << endl;
 }
+
 
 
 /* csimilarity */
@@ -360,7 +417,7 @@ void csimilarity<T>::add_vector(vector_item<T>* new_vector){
 
 template <class T>
 vector<vector_item<T>*>& csimilarity<T>::get_bucket(int index){
-	return this->buckets[index];
+	return buckets[index];
 }
 
 
@@ -412,6 +469,7 @@ void csimilarity<T>::findANN(vector_item<T>& query, float radius, float& min_dis
 
 				if(dist <= radius)
 					output << "\t" << item_id << endl;
+
 				/* Check if nearest neighbour */
 				if(dist <= min_dist || min_dist == 0.0){
 					min_dist = dist;
@@ -431,4 +489,27 @@ int csimilarity<T>::get_val_hf(array<int, D>& vec, int index){
 template <class T>
 int csimilarity<T>::get_k(){
 	return this->k;
+}
+
+template <class T>
+long int csimilarity<T>::get_size(){
+	long int total_size = 0;
+	
+	/* Get struct size */
+	total_size += sizeof(*this);
+
+	/* Get hash functions structs size */
+	for(int i = 0; i < k; i++){
+		total_size += hfs[i].get_size();
+	}
+
+	/* Calculate buckets size */
+	for(int i = 0; i < tableSize; i++){
+		total_size += sizeof(buckets[i]);
+		for(unsigned int j = 0; j < buckets[i].size(); j++){
+			total_size += sizeof(vector_item<T>*);
+		}
+	}
+
+	return total_size;
 }

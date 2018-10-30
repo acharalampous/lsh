@@ -57,25 +57,15 @@ vector_item<T>::vector_item(string& new_vector){
     }
 
     if(coordinates.size() != D){ // check if valid points where given
-        cout << "[Creation of vector_item] Invalid dimensions in vector! Abort." << endl;
+        cout << "[Creation of vector_item] Invalid dimensions in vector item given! Abort." << endl;
         exit(-1);
     } 
-}
-
-/* Print info about vector_item(Debugging) */
-template <class T>
-void vector_item<T>::print(){
-    cout << "\tI am " << item_id << endl;
-    for(int i = 0; i < D; i++)
-        cout << "\t" << i << ". " << coordinates[i] << endl;
-
-    cout << "\n" << endl;
 }
 
 /* Returns item name */
 template <class T>
 string& vector_item<T>::get_id(){
-    return this->item_id;
+    return item_id;
 }
 
 /* Return points array */
@@ -87,7 +77,17 @@ array<T, D>& vector_item<T>::get_points(){
 /* Returns size of vector(number of dimensions) */
 template <class T>
 int vector_item<T>::get_size(){
-    return this->coordinates.size();
+    return coordinates.size();
+}
+
+/* Print info about vector_item(Debugging) */
+template <class T>
+void vector_item<T>::print(){
+    cout << "\tI am " << item_id << endl;
+    for(int i = 0; i < D; i++)
+        cout << "\t" << i << ". " << coordinates[i] << endl;
+
+    cout << "\n" << endl;
 }
 
 
@@ -117,7 +117,7 @@ void dataset<T>::add_vector(string& new_vector){
 
 template <class T>
 int dataset<T>::get_counter(){
-    return this->counter;
+    return counter;
 }
 
 template <class T>
@@ -131,5 +131,4 @@ void dataset<T>::print(){
     cout << "[Dataset]: " << counter << endl;
     for(unsigned int i = 0; i < vectors.size(); i++)
         vectors[i]->print();
-
 }

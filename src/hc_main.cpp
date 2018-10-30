@@ -37,7 +37,7 @@ int main(int argc, char* argv[]){
     /* Check given parameters */
     int result = HC_get_parameters(argc, argv, input_file, query_file, output_file, k, probes, M);
     if(result == -2){
-        printValidParameters();
+        HC_printValidParameters();
         return -1;
     }
 
@@ -185,7 +185,7 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
 
     /* Get number of vectors, to insert them in LSH */
     unsigned int data_counter = my_data.get_counter();
-    cout << "**Dataset was created succesfully for " << data_counter << " vectors." << endl;
+    cout << "**Dataset was created succesfully for " << data_counter << " vectors.\n" << endl;
 
     /* Create LSH level */
     hypercube<int>* HC = new hypercube<int>(metrics, k, probes, M);
@@ -198,21 +198,25 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
     }
 
     if(metrics == 1){
-        output << "USING EUCLIDEAN DISTANCE" << endl;
-        output << "========================\n\n" << endl;
-        cout << "**Hypercube was created succesfully using Euclidean Distance." << endl;
+        output << "HYPERCUBE USING EUCLIDEAN DISTANCE" << endl;
+        output << "==================================\n\n" << endl;
+        cout << "**Hypercube was created succesfully using Euclidean Distance.\n" << endl;
     
     }
     else if(metrics == 2){
-        output << "USING COSINE SIMILARITY" << endl;
-        output << "=======================\n\n" << endl;
-        cout << "**Hypercube was created succesfully using Cosine Similarity." << endl;
+        output << "HYPERCUBE USING COSINE SIMILARITY" << endl;
+        output << "=================================\n\n" << endl;
+        cout << "**Hypercube was created succesfully using Cosine Similarity.\n" << endl;
     }
 
     /* Move to query part */
     cout << "**Starting Query sequence\n\n" << endl;
     
-    
+    double max_approx = 0.0; // maximum approximation (LSH_time / Real_time)
+    long double avg_hc_time = 0.0; // avg hc ANN time
+    long double avg_real_time = 0.0; // avg excausting search time
+    int total_queries = 0; // number of queries-vectors checked
+
     /* Scan first line for radius to be used on current query file */
     getline(query, line);
     double radius = get_radius(line);
@@ -220,15 +224,16 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
         radius = 0; // dont scan for neighbours in radius at all
         
         /* Find Neighbours */
-        float min_dist = 0.0;
+        float hc_min_dist = 0.0;
         string min_name = "";
-
         vector_item<int>* q_vector = new vector_item<int>(line);
+        total_queries++;
+
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
         const clock_t begin = clock();
-        HC->findANN(*q_vector, radius, min_dist, min_name, output);
+        HC->findANN(*q_vector, radius, hc_min_dist, min_name, output);
         const clock_t end = clock();
 
         /* Compute time elapsed for ANN searching */
@@ -241,25 +246,34 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
         double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
 
         output << "*Nearest Neighbour: " << min_name << endl;
-        output << "*DistanceHC: " << min_dist << endl;
+        output << "*DistanceHC: " << hc_min_dist << endl;
         output << "*DistanceReal: " << real_dist << endl;
         output << "*timeHC: " << hc_time << endl;
         output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
+
+        double approx = hc_min_dist / real_dist;
+        if(approx >= max_approx) // if current approximation larger that max, re set max
+            max_approx = approx;
+
+        avg_hc_time += hc_time; // add to toal lsh_time
+        avg_real_time += real_time;
+
         delete q_vector;
     }
 
     while(getline(query, line)){
         /* Find Neighbours */
-        float lsh_min_dist = 0.0;
-        string lsh_min_name = "";
-        
+        float hc_min_dist = 0.0;
+        string min_name = "";
         vector_item<int>* q_vector = new vector_item<int>(line);
+        total_queries++;
+
         output << "Query: " << q_vector->get_id() << endl;
         output << "*R-near neighbours (R = " << radius << "):" << endl;
 
         const clock_t lsh_begin = clock();
-        HC->findANN(*q_vector, radius, lsh_min_dist, lsh_min_name, output);
+        HC->findANN(*q_vector, radius, hc_min_dist, min_name, output);
         const clock_t lsh_end = clock();
         
         /* Compute time elapsed for ANN searching */
@@ -271,14 +285,34 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
 
         double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
 
-        output << "*Nearest Neighbour: " << lsh_min_name << endl;
-        output << "*DistanceHC: " << lsh_min_dist << endl;
+        output << "*Nearest Neighbour: " << hc_min_dist << endl;
+        output << "*DistanceHC: " << hc_min_dist << endl;
         output << "*DistanceTrue: " << real_dist << endl;
         output << "*timeHC: " << hc_time << endl;
         output << "*timeReal: " << real_time << endl;
         output << "\n" << endl;
+
+        double approx = hc_min_dist / real_dist;
+        if(approx >= max_approx)
+            max_approx = approx;
+
+        avg_hc_time += hc_time;
+        avg_real_time += real_time;
+
+
         delete q_vector;
     }
+
+    avg_hc_time = avg_hc_time / total_queries;
+    avg_real_time = avg_real_time / total_queries;
+
+
+    cout << "**Query sequence for " << total_queries << " queries finished succesfully." << endl;
+    cout << "\tMax Approximation: " << max_approx << endl;
+    cout << "\tAverage HC ANN time: " << avg_hc_time << endl;
+    cout << "\tAverage Excausting search time: " << avg_real_time << endl;
+    cout << "\tLSH total size: " << HC->get_total_size() << " bytes \n" << endl;
+
 
     cout << "**HyperCube Algorithm Has Completed. Check output file for results\n" << endl;
     

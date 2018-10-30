@@ -12,7 +12,7 @@
 
 #include "metrics.h"
 
-#define DEFAULT_L 5
+#define DEFAULT_L 5 // default number of hash tables 
 
 /*  Implementation of the class that uses the LSH algorithm */
 
@@ -33,4 +33,7 @@ class LSH{
 
         /* Finds ANN of given vector, searching in all hash tables */
         void findANN(vector_item<T>&, float, float&, std::string&, std::ofstream&);
+
+        /* Computes and returns the total size of the lsh struct */
+        long int get_total_size();
 };

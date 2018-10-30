@@ -365,3 +365,26 @@ vector<int>* hypercube<T>::find_neighbours(int num, int probes){
 
     return neighbours;
 }
+
+template <class T>
+long int hypercube<T>::get_total_size(){
+    long int total_size = 0;
+    int num_of_maps = 0;
+
+    total_size += sizeof(*this);
+    if(eu_table != NULL){
+        total_size += eu_table->get_size();
+        num_of_maps = eu_table->get_k();
+    }
+        
+    if(cs_table != NULL){
+        total_size += cs_table->get_size();
+        num_of_maps = cs_table->get_k();
+    }
+
+    for(int i = 0; i < num_of_maps; i++){
+        total_size += sizeof(fs[i]) + fs[i].size() + (2 * sizeof(int));
+    }
+    
+    return total_size;
+}
