@@ -284,7 +284,7 @@ int executeHC(ifstream& input, ifstream& query, ofstream& output, int k, int pro
 
         double real_time = float(real_end - real_begin) /  CLOCKS_PER_SEC;
 
-        output << "*Nearest Neighbour: " << hc_min_dist << endl;
+        output << "*Nearest Neighbour: " << min_name << endl;
         output << "*DistanceHC: " << hc_min_dist << endl;
         output << "*DistanceTrue: " << real_dist << endl;
         output << "*timeHC: " << hc_time << endl;

@@ -19,7 +19,7 @@
 #define HC_DEFAULT_K 3 // default number of hash functions(HC)
 #define HC_DEFAULT_M 10 // default points to be checked(HC)
 #define HC_DEFAULT_PROBES 2 // default neighbours to check (HC)
-#define W 600 // window for euclidean
+#define W 400 // window for euclidean
 #define TS_DIVISOR 4 // for tablesize in euclidean
 
 /* For random vector r, in euclidean */

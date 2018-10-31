@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g3 -Wall
+CFLAGS = -g3 -Wall -std=c++11
 OBJ = lsh_main.o hc_main.o utils.o dataset.o metrics.o lsh.o hypercube.o
 L_OBJ = lsh_main.o utils.o dataset.o metrics.o lsh.o
 LSH_X = lsh
