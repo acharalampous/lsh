@@ -42,12 +42,12 @@ Compile code using the Makefile provided:
 <br />_All parameters are optional during executing. If not provided, the three files will be requested from user. The K and L parameter if not provided, the default values will be used._
 * Hypercube: Execute using:
 <br /> ```./hypercube [-d input_file] [-q query_file] [-o output_file] [-k K] [-probes P] [-M m]```
-  *input_file: Path to dataset train file
-  *query_file: Path to file containing query vectors
-  *output_file: Path to results file
-  *K: Number of LSH Hash Functions
-  *P: Maximum number of neighbour edges checked
-  *M: Maximum number of vectors checked during search
+  * input_file: Path to dataset train file
+  * query_file: Path to file containing query vectors
+  * output_file: Path to results file
+  * K: Number of LSH Hash Functions
+  * P: Maximum number of neighbour edges checked
+  * M: Maximum number of vectors checked during search
 <br />_All parameters are optional during executing. If not provided, the three files will be requested from user. The K, probes and M parameter if not provided, the default values will be used._
 
 ### Output
