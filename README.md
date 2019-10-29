@@ -8,7 +8,7 @@
 
 ## Deployment
 
-The code was developed and tested on **Linux Ubuntu 16.04 LTS** using **C++11** and **g++ v7.3.0**.
+The code was developed and tested on **Linux Ubuntu 18.04 LTS** using **C++11** and **g++ v7.3.0**.
 
 ## Prerequisites
 
@@ -51,8 +51,8 @@ Compile code using the Makefile provided:
 <br />_All parameters are optional during executing. If not provided, the three files will be requested from user. The K, probes and M parameter if not provided, the default values will be used._
 
 ### Output
-* LSH:
-<br /> LSH USING COSINE SIMILARITY
+* **LSH**:
+<br />LSH USING COSINE SIMILARITY
 <br />===========================
 <br />
 <br />
@@ -70,7 +70,7 @@ Compile code using the Makefile provided:
 <br />timeReal: 0.037003
 <br />...
 <br />...
-* Hypercube:
+* **Hypercube**:
 <br />HYPERCUBE USING COSINE SIMILARITY
 <br />=================================
 <br />
