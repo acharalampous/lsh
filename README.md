@@ -54,8 +54,6 @@ Compile code using the Makefile provided:
 * **LSH**:
 <br />LSH USING COSINE SIMILARITY
 <br />===========================
-<br />
-<br />
 <br />Query: item_idS0
 <br />R-near neighbours (R = 1):
 <br />  item_id25
@@ -74,8 +72,6 @@ Compile code using the Makefile provided:
 * **Hypercube**:
 <br />HYPERCUBE USING COSINE SIMILARITY
 <br />=================================
-<br />
-<br />
 <br />Query: item_idS0
 <br />R-near neighbours (R = 1):
 <br />  item_id0
