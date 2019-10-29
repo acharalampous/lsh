@@ -70,6 +70,7 @@ Compile code using the Makefile provided:
 <br />timeReal: 0.037003
 <br />...
 <br />...
+
 * **Hypercube**:
 <br />HYPERCUBE USING COSINE SIMILARITY
 <br />=================================
